@@ -1,0 +1,263 @@
+{% extends 'detector/base.html' %}
+
+{% block title %}Acerca de - Detector de Lenguaje Tóxico{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <i class="bi bi-shield-check text-primary" style="font-size: 4rem;"></i>
+            <h1 class="mt-3">Detector de Lenguaje Tóxico</h1>
+            <p class="lead text-muted">
+                Sistema inteligente de análisis de texto basado en autómatas finitos deterministas (AFD)
+            </p>
+        </div>
+
+        <!-- System Overview -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-gear"></i>
+                    Descripción del Sistema
+                </h4>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">
+                    El <strong>Detector de Lenguaje Tóxico</strong> es un sistema desarrollado en Django que utiliza 
+                    autómatas finitos deterministas (AFD) para analizar texto y detectar contenido agresivo o tóxico 
+                    en tiempo real.
+                </p>
+                
+                <p class="mb-3">
+                    El sistema está diseñado para procesar comentarios de blogs, mensajes de chat, entradas de foros 
+                    y cualquier otro tipo de texto, proporcionando una clasificación detallada del nivel de toxicidad 
+                    y los tipos específicos de contenido detectado.
+                </p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-check-circle text-success"></i> Características Principales:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-arrow-right text-primary"></i> Detección en tiempo real</li>
+                            <li><i class="bi bi-arrow-right text-primary"></i> Múltiples niveles de toxicidad</li>
+                            <li><i class="bi bi-arrow-right text-primary"></i> Patrones personalizables</li>
+                            <li><i class="bi bi-arrow-right text-primary"></i> Estadísticas detalladas</li>
+                            <li><i class="bi bi-arrow-right text-primary"></i> Interfaz web intuitiva</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-shield-check text-success"></i> Tipos de Toxicidad Detectados:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-tag text-warning"></i> Insultos</li>
+                            <li><i class="bi bi-tag text-warning"></i> Amenazas</li>
+                            <li><i class="bi bi-tag text-warning"></i> Odio</li>
+                            <li><i class="bi bi-tag text-warning"></i> Acoso</li>
+                            <li><i class="bi bi-tag text-warning"></i> Profanidad</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Details -->
+        <div class="row mb-4">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-cpu"></i>
+                            Implementación Técnica
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>Autómata Finito Determinista (AFD)</h6>
+                        <p class="mb-3">
+                            El sistema utiliza un AFD con múltiples estados para detectar patrones de toxicidad:
+                        </p>
+                        
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong>q0:</strong> Estado inicial (texto seguro)
+                            </li>
+                            <li class="mb-2">
+                                <strong>q1-q5:</strong> Estados de detección por tipo
+                            </li>
+                            <li class="mb-2">
+                                <strong>q6:</strong> Estado final tóxico
+                            </li>
+                        </ul>
+                        
+                        <h6 class="mt-3">Estadísticas del Autómata:</h6>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="border rounded p-2">
+                                    <strong>{{ automaton_stats.total_states }}</strong>
+                                    <br><small class="text-muted">Estados</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="border rounded p-2">
+                                    <strong>{{ automaton_stats.total_patterns }}</strong>
+                                    <br><small class="text-muted">Patrones</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-code-slash"></i>
+                            Tecnologías Utilizadas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <div class="text-center">
+                                    <i class="bi bi-file-earmark-code text-primary" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">Django 5.2.7</h6>
+                                    <small class="text-muted">Framework Web</small>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="text-center">
+                                    <i class="bi bi-diagram-2 text-success" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">AFD/AFND</h6>
+                                    <small class="text-muted">Autómatas Finitos</small>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="text-center">
+                                    <i class="bi bi-database text-info" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">SQLite</h6>
+                                    <small class="text-muted">Base de Datos</small>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="text-center">
+                                    <i class="bi bi-bootstrap text-purple" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2">Bootstrap 5</h6>
+                                    <small class="text-muted">Frontend</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pattern Distribution -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-bar-chart"></i>
+                    Distribución de Patrones por Tipo
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for toxicity_type, count in automaton_stats.patterns_by_type.items %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-tag-fill text-warning" style="font-size: 1.5rem;"></i>
+                                    <h6 class="mt-2">{{ toxicity_type|title }}</h6>
+                                    <span class="badge bg-primary fs-6">{{ count }}</span>
+                                    <br><small class="text-muted">patrones</small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-question-circle"></i>
+                    ¿Cómo Funciona?
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="border rounded p-3">
+                            <i class="bi bi-1-circle text-primary" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">1. Entrada</h6>
+                            <small class="text-muted">El usuario ingresa el texto a analizar</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="border rounded p-3">
+                            <i class="bi bi-2-circle text-primary" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">2. Procesamiento</h6>
+                            <small class="text-muted">El AFD analiza el texto palabra por palabra</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="border rounded p-3">
+                            <i class="bi bi-3-circle text-primary" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">3. Detección</h6>
+                            <small class="text-muted">Se identifican patrones tóxicos usando regex</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <div class="border rounded p-3">
+                            <i class="bi bi-4-circle text-primary" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">4. Resultado</h6>
+                            <small class="text-muted">Se muestra el nivel y tipo de toxicidad</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact/Support -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-envelope"></i>
+                    Información Adicional
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-info-circle text-info"></i> Versión del Sistema</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Versión:</strong> 1.0.0</li>
+                            <li><strong>Fecha de lanzamiento:</strong> {{ "now"|date:"d/m/Y" }}</li>
+                            <li><strong>Desarrollado con:</strong> Django + AFD</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-shield-check text-success"></i> Características de Seguridad</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check text-success"></i> Análisis confidencial</li>
+                            <li><i class="bi bi-check text-success"></i> No almacenamiento de datos sensibles</li>
+                            <li><i class="bi bi-check text-success"></i> Patrones actualizables</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-lightbulb"></i>
+                    <strong>Nota:</strong> Este sistema es una demostración educativa de cómo implementar 
+                    un detector de toxicidad usando autómatas finitos deterministas. Los patrones pueden 
+                    ser personalizados desde el panel de administración.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+

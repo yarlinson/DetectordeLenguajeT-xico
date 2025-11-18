@@ -1,0 +1,206 @@
+{% extends 'detector/base.html' %}
+
+{% block title %}Historial de Análisis - Detector de Lenguaje Tóxico{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-clock-history text-primary"></i>
+                Historial de Análisis
+            </h2>
+            <a href="{% url 'detector:home' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                Nuevo Análisis
+            </a>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="toxicity_level" class="form-label">Nivel de Toxicidad</label>
+                        <select name="toxicity_level" id="toxicity_level" class="form-select">
+                            <option value="">Todos los niveles</option>
+                            {% for level in toxicity_levels %}
+                                <option value="{{ level.value }}" 
+                                        {% if current_filters.toxicity_level == level.value %}selected{% endif %}>
+                                    {{ level.value|title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="is_toxic" class="form-label">Estado</label>
+                        <select name="is_toxic" id="is_toxic" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="true" {% if current_filters.is_toxic == 'true' %}selected{% endif %}>
+                                Tóxico
+                            </option>
+                            <option value="false" {% if current_filters.is_toxic == 'false' %}selected{% endif %}>
+                                Seguro
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-outline-primary me-2">
+                            <i class="bi bi-funnel"></i>
+                            Filtrar
+                        </button>
+                        <a href="{% url 'detector:history' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i>
+                            Limpiar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Analysis List -->
+        {% if page_obj %}
+            <div class="row">
+                {% for analysis in page_obj %}
+                    <div class="col-lg-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if analysis.source_type == 'file' %}
+                                        <span class="badge bg-info text-dark me-2"><i class="bi bi-file-earmark-text"></i> Archivo</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark me-2"><i class="bi bi-keyboard"></i> Texto</span>
+                                    {% endif %}
+                                    <span class="badge bg-{{ analysis.is_toxic|yesno:'danger,success' }} toxicity-badge">
+                                        {{ analysis.get_toxicity_level_display }}
+                                    </span>
+                                </div>
+                                <small class="text-muted">{{ analysis.created_at|date:"d/m/Y H:i" }}</small>
+                            </div>
+                            
+                            <div class="card-body">
+                                {% if analysis.source_type == 'file' and analysis.file_name %}
+                                    <p class="mb-2 text-muted"><i class="bi bi-file-earmark"></i> {{ analysis.file_name }}</p>
+                                {% endif %}
+                                <p class="card-text">
+                                    {% if analysis.text|length > 100 %}
+                                        {{ analysis.text|truncatechars:100 }}...
+                                    {% else %}
+                                        {{ analysis.text }}
+                                    {% endif %}
+                                </p>
+                                
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <small class="text-muted">Confianza</small>
+                                        <div class="fw-bold">{{ analysis.confidence_percentage|floatformat:1 }}%</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-muted">Tipos</small>
+                                        <div class="fw-bold">{{ analysis.toxicity_types|length }}</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-muted">Palabras</small>
+                                        <div class="fw-bold">{{ analysis.detected_words|length }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        {% if analysis.toxicity_types %}
+                                            {% for toxicity_type in analysis.toxicity_types %}
+                                                <span class="badge bg-warning text-dark me-1">
+                                                    {{ toxicity_type|title }}
+                                                </span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="text-muted">Sin tipos detectados</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <a href="{% url 'detector:detail' analysis.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                        Ver Detalles
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+                <nav aria-label="Paginación del historial">
+                    <ul class="pagination justify-content-center mt-4">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if current_filters.toxicity_level %}&toxicity_level={{ current_filters.toxicity_level }}{% endif %}{% if current_filters.is_toxic %}&is_toxic={{ current_filters.is_toxic }}{% endif %}">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_filters.toxicity_level %}&toxicity_level={{ current_filters.toxicity_level }}{% endif %}{% if current_filters.is_toxic %}&is_toxic={{ current_filters.is_toxic }}{% endif %}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if current_filters.toxicity_level %}&toxicity_level={{ current_filters.toxicity_level }}{% endif %}{% if current_filters.is_toxic %}&is_toxic={{ current_filters.is_toxic }}{% endif %}">
+                                        {{ num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_filters.toxicity_level %}&toxicity_level={{ current_filters.toxicity_level }}{% endif %}{% if current_filters.is_toxic %}&is_toxic={{ current_filters.is_toxic }}{% endif %}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if current_filters.toxicity_level %}&toxicity_level={{ current_filters.toxicity_level }}{% endif %}{% if current_filters.is_toxic %}&is_toxic={{ current_filters.is_toxic }}{% endif %}">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+
+        {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                <h4 class="mt-3 text-muted">No hay análisis en tu historial</h4>
+                <p class="text-muted">
+                    {% if current_filters.toxicity_level or current_filters.is_toxic %}
+                        No se encontraron análisis que coincidan con los filtros aplicados.
+                    {% else %}
+                        Realiza tu primer análisis de texto para ver los resultados aquí.
+                    {% endif %}
+                </p>
+                <a href="{% url 'detector:home' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i>
+                    Realizar Análisis
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+
+

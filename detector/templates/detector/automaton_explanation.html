@@ -1,0 +1,600 @@
+{% extends 'detector/base.html' %}
+
+{% block title %}Explicación del AFD - Detector de Toxicidad{% endblock %}
+
+{% block extra_css %}
+<style>
+    .state-card {
+        border-left: 4px solid;
+        transition: transform 0.2s;
+    }
+    .state-card:hover {
+        transform: translateX(5px);
+    }
+    .state-q0 { border-left-color: #28a745; }
+    .state-q1 { border-left-color: #ffc107; }
+    .state-q2 { border-left-color: #fd7e14; }
+    .state-q3 { border-left-color: #6f42c1; }
+    
+    .transition-table {
+        font-size: 0.9rem;
+    }
+    .transition-table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    
+    .example-box {
+        background-color: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 4px;
+    }
+    
+    .path-arrow {
+        color: #0d6efd;
+        font-weight: bold;
+        margin: 0 0.5rem;
+    }
+    
+    .quintuple-item {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    .code-block {
+        background-color: #f4f4f4;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 1rem;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        overflow-x: auto;
+    }
+    
+    .toxicity-type-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin: 0.2rem;
+    }
+    
+    .type-insult { background-color: #fff3cd; color: #856404; }
+    .type-profanity { background-color: #fff3cd; color: #856404; }
+    .type-harassment { background-color: #ffeaa7; color: #d63031; }
+    .type-threat { background-color: #fab1a0; color: #2d3436; }
+    .type-hate { background-color: #fab1a0; color: #2d3436; }
+    
+    .mermaid {
+        text-align: center;
+        background-color: #ffffff;
+        padding: 2rem;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .diagram-container {
+        overflow-x: auto;
+        margin: 2rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-diagram-2"></i> Explicación del Autómata Finito Determinista (AFD)
+        </h1>
+        
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            <strong>¿Qué es un AFD?</strong> Un Autómata Finito Determinista es un modelo matemático que procesa una secuencia de símbolos de entrada y determina si la secuencia es aceptada o rechazada según un conjunto de reglas predefinidas.
+        </div>
+    </div>
+</div>
+
+<!-- Quíntupla del AFD -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="bi bi-list-ol"></i> Quíntupla del AFD: M = (Q, Σ, δ, q₀, F)</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="quintuple-item">
+                            <h5><strong>Q (Conjunto de Estados)</strong></h5>
+                            <p class="mb-2">Estados posibles del autómata:</p>
+                            <ul class="list-unstyled ms-3">
+                                <li><strong>q₀</strong>: Estado inicial → <span class="badge bg-success">SAFE</span> (Seguro)</li>
+                                <li><strong>q₁</strong>: Estado → <span class="badge bg-warning text-dark">LOW</span> (Bajo)</li>
+                                <li><strong>q₂</strong>: Estado → <span class="badge bg-danger">MEDIUM</span> (Medio)</li>
+                                <li><strong>q₃</strong>: Estado → <span class="badge bg-dark">EXTREME</span> (Extremo) - <em>Estado absorbente</em></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="quintuple-item">
+                            <h5><strong>Σ (Alfabeto)</strong></h5>
+                            <p class="mb-2">Conjunto de patrones regex de toxicidad organizados por tipo:</p>
+                            <div>
+                                <span class="toxicity-type-badge type-insult">INSULT</span>
+                                <span class="toxicity-type-badge type-profanity">PROFANITY</span>
+                                <span class="toxicity-type-badge type-harassment">HARASSMENT</span>
+                                <span class="toxicity-type-badge type-threat">THREAT</span>
+                                <span class="toxicity-type-badge type-hate">HATE</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="quintuple-item">
+                            <h5><strong>δ (Función de Transición)</strong></h5>
+                            <p class="mb-0">Reglas que definen cómo cambiar de estado según el patrón detectado:</p>
+                            <code class="d-block mt-2">δ(estado, patrón) = nuevo_estado</code>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="quintuple-item">
+                            <h5><strong>q₀ (Estado Inicial)</strong></h5>
+                            <p class="mb-0">Estado desde el cual comienza el procesamiento:</p>
+                            <span class="badge bg-success mt-2">q₀ (SAFE)</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="quintuple-item">
+                            <h5><strong>F (Estados Finales)</strong></h5>
+                            <p class="mb-0">Todos los estados son finales:</p>
+                            <span class="badge bg-secondary mt-2">{q₀, q₁, q₂, q₃}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Diagrama de Transición -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="bi bi-diagram-3"></i> Diagrama de Transición del AFD</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    El siguiente diagrama muestra visualmente cómo el autómata transita entre estados según los patrones de toxicidad detectados.
+                    El estado inicial está marcado con una flecha entrante, y el estado absorbente (q₃) tiene un bucle que indica que permanece ahí.
+                </p>
+                
+                <div class="diagram-container">
+                    <div class="mermaid">
+stateDiagram-v2
+    [*] --> q0
+    q0 --> q1: INSULT<br/>PROFANITY
+    q0 --> q2: HARASSMENT
+    q0 --> q3: THREAT<br/>HATE
+    q1 --> q1: INSULT<br/>PROFANITY
+    q1 --> q2: HARASSMENT
+    q1 --> q3: THREAT<br/>HATE
+    q2 --> q2: INSULT<br/>PROFANITY<br/>HARASSMENT
+    q2 --> q3: THREAT<br/>HATE
+    q3 --> q3: Cualquier<br/>Patrón
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-3 text-center">
+                        <div class="card border-success">
+                            <div class="card-body">
+                                <h5 class="card-title"><strong>q₀</strong></h5>
+                                <p class="card-text mb-1"><span class="badge bg-success">SAFE</span></p>
+                                <small class="text-muted">Estado Inicial<br/>y Final</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="card border-warning">
+                            <div class="card-body">
+                                <h5 class="card-title"><strong>q₁</strong></h5>
+                                <p class="card-text mb-1"><span class="badge bg-warning text-dark">LOW</span></p>
+                                <small class="text-muted">Estado Final</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="card border-danger">
+                            <div class="card-body">
+                                <h5 class="card-title"><strong>q₂</strong></h5>
+                                <p class="card-text mb-1"><span class="badge bg-danger">MEDIUM</span></p>
+                                <small class="text-muted">Estado Final</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="card border-dark">
+                            <div class="card-body">
+                                <h5 class="card-title"><strong>q₃</strong></h5>
+                                <p class="card-text mb-1"><span class="badge bg-dark">EXTREME</span></p>
+                                <small class="text-muted">Estado Final<br/>y Absorbente</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <h6><i class="bi bi-info-circle"></i> Explicación del Diagrama:</h6>
+                    <ul class="mb-0">
+                        <li><strong>Flecha entrante desde [*]:</strong> Indica que <strong>q₀ es el estado inicial</strong> desde donde comienza el procesamiento.</li>
+                        <li><strong>Flechas entre estados:</strong> Muestran las transiciones posibles. La etiqueta indica qué tipo de patrón tóxico activa esa transición.</li>
+                        <li><strong>Bucles (flechas que vuelven al mismo estado):</strong> Indican que el autómata permanece en ese estado cuando detecta esos patrones.</li>
+                        <li><strong>Bucle en q₃:</strong> Indica que es un <strong>estado absorbente</strong> - una vez que el autómata llega a q₃, permanece ahí sin importar qué más detecte.</li>
+                        <li><strong>Estados Finales:</strong> Todos los estados (q₀, q₁, q₂, q₃) son estados finales, lo que significa que el autómata puede terminar en cualquiera de ellos. Esto se indica en las etiquetas de cada estado.</li>
+                        <li><strong>Dirección de las transiciones:</strong> Las flechas muestran que el autómata solo puede <strong>aumentar o mantener</strong> el nivel de toxicidad, nunca disminuirlo.</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <h6><i class="bi bi-lightbulb"></i> ¿Cómo leer el diagrama?</h6>
+                    <p class="mb-2"><strong>Ejemplo:</strong> Si el texto contiene un insulto:</p>
+                    <ol class="mb-0">
+                        <li>El autómata comienza en <strong>q₀ (SAFE)</strong></li>
+                        <li>Detecta un patrón de tipo <strong>INSULT</strong></li>
+                        <li>Sigue la flecha <strong>q₀ → q₁</strong> (etiquetada con "INSULT / PROFANITY")</li>
+                        <li>El autómata termina en <strong>q₁ (LOW)</strong>, que es un estado final</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estados del AFD -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="bi bi-circle-fill"></i> Estados del AFD</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for state_key, state_info in afd_info.states.items %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card state-card state-{{ state_key }}">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <strong>{{ state_key|upper }}</strong> - {{ state_info.name }}
+                                </h5>
+                                <p class="card-text">{{ state_info.description }}</p>
+                                <span class="badge bg-{{ state_info.level }}">
+                                    Nivel: {{ state_info.name }}
+                                </span>
+                                {% if state_info.final %}
+                                <span class="badge bg-secondary ms-2">Estado Final</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de Transiciones -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="bi bi-arrow-right-circle"></i> Tabla de Transiciones</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    La función de transición δ define cómo el autómata cambia de estado cuando detecta un patrón de toxicidad.
+                </p>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover transition-table">
+                        <thead>
+                            <tr>
+                                <th>Estado Actual</th>
+                                <th>Patrón Detectado</th>
+                                <th>Nuevo Estado</th>
+                                <th>Nivel de Toxicidad</th>
+                                <th>Ejemplo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transition in afd_info.transitions %}
+                            <tr>
+                                <td><strong>{{ transition.from|upper }}</strong></td>
+                                <td>{{ transition.trigger }}</td>
+                                <td>
+                                    <strong>{{ transition.to|upper }}</strong>
+                                    {% if transition.from == transition.to %}
+                                    <span class="badge bg-info ms-2">Permanece</span>
+                                    {% else %}
+                                    <span class="badge bg-success ms-2">Transición</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if transition.to == 'q0' %}
+                                        <span class="badge bg-success">SAFE</span>
+                                    {% elif transition.to == 'q1' %}
+                                        <span class="badge bg-warning text-dark">LOW</span>
+                                    {% elif transition.to == 'q2' %}
+                                        <span class="badge bg-danger">MEDIUM</span>
+                                    {% elif transition.to == 'q3' %}
+                                        <span class="badge bg-dark">EXTREME</span>
+                                    {% endif %}
+                                </td>
+                                <td><small class="text-muted">{{ transition.example }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reglas de Transición Detalladas -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="bi bi-diagram-3"></i> Reglas de Transición Detalladas</h3>
+            </div>
+            <div class="card-body">
+                <h5>Desde q₀ (SAFE - Estado Inicial):</h5>
+                <ul>
+                    <li><strong>δ(q₀, INSULT)</strong> = q₁ → <span class="badge bg-warning text-dark">LOW</span></li>
+                    <li><strong>δ(q₀, PROFANITY)</strong> = q₁ → <span class="badge bg-warning text-dark">LOW</span></li>
+                    <li><strong>δ(q₀, HARASSMENT)</strong> = q₂ → <span class="badge bg-danger">MEDIUM</span></li>
+                    <li><strong>δ(q₀, THREAT)</strong> = q₃ → <span class="badge bg-dark">EXTREME</span></li>
+                    <li><strong>δ(q₀, HATE)</strong> = q₃ → <span class="badge bg-dark">EXTREME</span></li>
+                </ul>
+                
+                <h5 class="mt-4">Desde q₁ (LOW):</h5>
+                <ul>
+                    <li><strong>δ(q₁, INSULT)</strong> = q₁ → <span class="badge bg-warning text-dark">LOW</span> (permanece)</li>
+                    <li><strong>δ(q₁, PROFANITY)</strong> = q₁ → <span class="badge bg-warning text-dark">LOW</span> (permanece)</li>
+                    <li><strong>δ(q₁, HARASSMENT)</strong> = q₂ → <span class="badge bg-danger">MEDIUM</span> (sube)</li>
+                    <li><strong>δ(q₁, THREAT)</strong> = q₃ → <span class="badge bg-dark">EXTREME</span> (sube)</li>
+                    <li><strong>δ(q₁, HATE)</strong> = q₃ → <span class="badge bg-dark">EXTREME</span> (sube)</li>
+                </ul>
+                
+                <h5 class="mt-4">Desde q₂ (MEDIUM):</h5>
+                <ul>
+                    <li><strong>δ(q₂, INSULT)</strong> = q₂ → <span class="badge bg-danger">MEDIUM</span> (permanece)</li>
+                    <li><strong>δ(q₂, PROFANITY)</strong> = q₂ → <span class="badge bg-danger">MEDIUM</span> (permanece)</li>
+                    <li><strong>δ(q₂, HARASSMENT)</strong> = q₂ → <span class="badge bg-danger">MEDIUM</span> (permanece)</li>
+                    <li><strong>δ(q₂, THREAT)</strong> = q₃ → <span class="badge bg-dark">EXTREME</span> (sube)</li>
+                    <li><strong>δ(q₂, HATE)</strong> = q₃ → <span class="badge bg-dark">EXTREME</span> (sube)</li>
+                </ul>
+                
+                <h5 class="mt-4">Desde q₃ (EXTREME - Estado Absorbente):</h5>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Estado Absorbente:</strong> Una vez que el autómata llega a q₃, permanece ahí sin importar qué patrón detecte después.
+                </div>
+                <ul>
+                    <li><strong>δ(q₃, cualquier_patrón)</strong> = q₃ → <span class="badge bg-dark">EXTREME</span> (permanece)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ejemplos Prácticos -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="bi bi-lightbulb"></i> Ejemplos Prácticos</h3>
+            </div>
+            <div class="card-body">
+                {% for example in afd_info.examples %}
+                <div class="example-box">
+                    <h5><strong>Ejemplo {{ forloop.counter }}:</strong> "{{ example.text }}"</h5>
+                    <p class="mb-2">{{ example.description }}</p>
+                    <div class="mb-2">
+                        <strong>Recorrido del AFD:</strong>
+                        {% for state in example.path %}
+                            <span class="badge bg-primary">{{ state|upper }}</span>
+                            {% if not forloop.last %}
+                                <span class="path-arrow">→</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <div>
+                        <strong>Resultado:</strong> 
+                        {% if 'Seguro' in example.result %}
+                            <span class="badge bg-success">{{ example.result }}</span>
+                        {% elif 'Low' in example.result %}
+                            <span class="badge bg-warning text-dark">{{ example.result }}</span>
+                        {% elif 'Medium' in example.result %}
+                            <span class="badge bg-danger">{{ example.result }}</span>
+                        {% elif 'Extreme' in example.result %}
+                            <span class="badge bg-dark">{{ example.result }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ example.result }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Flujo de Procesamiento -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="bi bi-diagram-3-fill"></i> Flujo de Procesamiento del Texto</h3>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li class="mb-3">
+                        <strong>Inicialización:</strong> El autómata comienza en el estado <span class="badge bg-success">q₀ (SAFE)</span>.
+                    </li>
+                    <li class="mb-3">
+                        <strong>Búsqueda de Patrones:</strong> El sistema recorre el texto de izquierda a derecha buscando coincidencias con los patrones regex definidos en el alfabeto Σ.
+                    </li>
+                    <li class="mb-3">
+                        <strong>Aplicación de Transiciones:</strong> Cada vez que se detecta un patrón, se aplica la función de transición δ(estado_actual, tipo_patrón) para determinar el nuevo estado.
+                    </li>
+                    <li class="mb-3">
+                        <strong>Actualización de Estado:</strong> El estado actual se actualiza según el resultado de la transición.
+                    </li>
+                    <li class="mb-3">
+                        <strong>Estado Absorbente:</strong> Si el autómata llega a <span class="badge bg-dark">q₃ (EXTREME)</span>, permanece ahí sin importar qué más detecte.
+                    </li>
+                    <li class="mb-3">
+                        <strong>Resultado Final:</strong> Al finalizar el procesamiento, el estado final determina el nivel de toxicidad del texto:
+                        <ul class="mt-2">
+                            <li><span class="badge bg-success">q₀</span> → Texto seguro</li>
+                            <li><span class="badge bg-warning text-dark">q₁</span> → Toxicidad baja</li>
+                            <li><span class="badge bg-danger">q₂</span> → Toxicidad media</li>
+                            <li><span class="badge bg-dark">q₃</span> → Toxicidad extrema</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Implementación en Código -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="bi bi-code-slash"></i> Implementación en Código</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    La función de transición está implementada en el archivo <code>detector/automaton.py</code>:
+                </p>
+                <div class="code-block">
+<pre>def _transition(self, current_state: str, toxicity_type: ToxicityType) -> str:
+    """Aplica la función de transición δ(estado, tipo_patrón) = nuevo_estado"""
+    
+    # Estado q₃ es absorbente
+    if current_state == 'q3':
+        return 'q3'
+    
+    # Desde q₀
+    if current_state == 'q0':
+        if toxicity_type in [ToxicityType.INSULT, ToxicityType.PROFANITY]:
+            return 'q1'  # LOW
+        elif toxicity_type == ToxicityType.HARASSMENT:
+            return 'q2'  # MEDIUM
+        elif toxicity_type in [ToxicityType.THREAT, ToxicityType.HATE]:
+            return 'q3'  # EXTREME
+    
+    # Desde q₁
+    elif current_state == 'q1':
+        if toxicity_type in [ToxicityType.INSULT, ToxicityType.PROFANITY]:
+            return 'q1'  # Permanece en LOW
+        elif toxicity_type == ToxicityType.HARASSMENT:
+            return 'q2'  # Sube a MEDIUM
+        elif toxicity_type in [ToxicityType.THREAT, ToxicityType.HATE]:
+            return 'q3'  # Sube a EXTREME
+    
+    # Desde q₂
+    elif current_state == 'q2':
+        if toxicity_type in [ToxicityType.INSULT, ToxicityType.PROFANITY, ToxicityType.HARASSMENT]:
+            return 'q2'  # Permanece en MEDIUM
+        elif toxicity_type in [ToxicityType.THREAT, ToxicityType.HATE]:
+            return 'q3'  # Sube a EXTREME
+    
+    return current_state</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Características Importantes -->
+<div class="row mt-4 mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="bi bi-star"></i> Características Importantes del AFD</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul>
+                            <li><strong>Determinista:</strong> Para cada estado y entrada, hay exactamente un estado siguiente.</li>
+                            <li><strong>Procesamiento Secuencial:</strong> El texto se procesa de izquierda a derecha.</li>
+                            <li><strong>Estados Finales:</strong> Todos los estados son finales, lo que significa que el autómata puede detenerse en cualquier estado.</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul>
+                            <li><strong>Estado Absorbente:</strong> q₃ es un estado absorbente que no puede ser abandonado una vez alcanzado.</li>
+                            <li><strong>Escalado de Toxicidad:</strong> El autómata solo puede aumentar o mantener el nivel de toxicidad, nunca disminuirlo.</li>
+                            <li><strong>Múltiples Patrones:</strong> El sistema puede detectar múltiples patrones en un mismo texto.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12 text-center">
+        <a href="{% url 'detector:home' %}" class="btn btn-primary btn-lg">
+            <i class="bi bi-house"></i> Volver al Inicio
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Mermaid.js para diagramas -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis',
+                padding: 20
+            },
+            themeVariables: {
+                primaryColor: '#28a745',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#1e7e34',
+                lineColor: '#333',
+                secondaryColor: '#ffc107',
+                tertiaryColor: '#fd7e14',
+                noteBkgColor: '#fff3cd',
+                noteTextColor: '#856404',
+                noteBorderColor: '#ffc107',
+                fontFamily: 'Arial, sans-serif',
+                fontSize: '14px'
+            }
+        });
+    });
+</script>
+{% endblock %}
+

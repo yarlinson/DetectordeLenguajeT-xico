@@ -1,0 +1,265 @@
+{% extends 'detector/base.html' %}
+
+{% block title %}Resultado del Análisis - Detector de Lenguaje Tóxico{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-clipboard-check text-primary"></i>
+                    Resultado del Análisis
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- Analysis Summary -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-3">
+                            {% if analysis.is_toxic %}
+                                <i class="bi bi-shield-exclamation text-danger" style="font-size: 3rem;"></i>
+                            {% else %}
+                                <i class="bi bi-shield-check text-success" style="font-size: 3rem;"></i>
+                            {% endif %}
+                            <div class="ms-3">
+                                <h5 class="mb-0">
+                                    {% if analysis.is_toxic %}
+                                        Contenido Tóxico Detectado
+                                    {% else %}
+                                        Contenido Seguro
+                                    {% endif %}
+                                </h5>
+                                <span class="badge bg-{{ analysis.is_toxic|yesno:'danger,success' }} toxicity-badge">
+                                    {{ analysis.get_toxicity_level_display }}
+                                </span>
+                                <br>
+                                <small class="text-muted">
+                                    Origen: <strong>{{ analysis.get_source_display }}</strong>
+                                    {% if analysis.source_type == 'file' and analysis.file_name %}
+                                        <br>Archivo: <strong>{{ analysis.file_name }}</strong>{% if analysis.file_type %} ({{ analysis.file_type|upper }}){% endif %}
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <strong>Confianza:</strong>
+                            <div class="progress mt-1">
+                                <div class="progress-bar bg-{{ analysis.is_toxic|yesno:'danger,success' }}" 
+                                     style="width: {{ analysis.confidence_percentage|floatformat:1 }}%">
+                                    {{ analysis.confidence_percentage|floatformat:1 }}%
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Fecha de análisis:</strong>
+                            <p class="mb-0">{{ analysis.created_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analyzed Text -->
+                <div class="mb-4">
+                    <h6><i class="bi bi-file-text"></i> Texto Analizado:</h6>
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            {% if analysis.highlighted_text %}
+                                <div class="highlighted-text">
+                                    {{ analysis.highlighted_text|safe }}
+                                </div>
+                            {% else %}
+                                <p class="mb-0">{{ analysis.text }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if analysis.detected_words %}
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>{{ analysis.detected_words|length }}</strong> palabra(s)/frase(s) detectada(s)
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Detailed Results -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-tags"></i>
+                                    Tipos de Toxicidad
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                {% if analysis.toxicity_types %}
+                                    {% for toxicity_type in analysis.toxicity_types %}
+                                        <span class="badge bg-warning text-dark me-2 mb-2">
+                                            {{ toxicity_type|title }}
+                                        </span>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted mb-0">Ningún tipo de toxicidad detectado</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-search"></i>
+                                    Tipos de Toxicidad Detectados
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                {% if analysis.toxicity_types %}
+                                    <p class="mb-2">
+                                        <strong>{{ analysis.toxicity_types|length }}</strong> tipo{{ analysis.toxicity_types|length|pluralize }} de toxicidad detectado{{ analysis.toxicity_types|length|pluralize }}
+                                    </p>
+                                    <small class="text-muted">
+                                        Tipos: {{ analysis.toxicity_types|join:", "|title }}
+                                    </small>
+                                {% else %}
+                                    <p class="text-muted mb-0">Ningún patrón tóxico detectado</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Palabras Detectadas por Patrón -->
+                {% if analysis.detected_words %}
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-list-ul"></i>
+                            Palabras Detectadas por Patrón
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% regroup analysis.detected_words by toxicity_type as words_by_type %}
+                            {% for type_group in words_by_type %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-header bg-light">
+                                            <h6 class="mb-0">
+                                                {% if type_group.grouper == 'insult' %}
+                                                    <i class="bi bi-chat-dots text-warning"></i> Insultos
+                                                {% elif type_group.grouper == 'threat' %}
+                                                    <i class="bi bi-exclamation-triangle text-danger"></i> Amenazas
+                                                {% elif type_group.grouper == 'hate' %}
+                                                    <i class="bi bi-heartbreak text-danger"></i> Odio
+                                                {% elif type_group.grouper == 'harassment' %}
+                                                    <i class="bi bi-person-x text-warning"></i> Acoso
+                                                {% elif type_group.grouper == 'profanity' %}
+                                                    <i class="bi bi-exclamation-circle text-warning"></i> Profanidad
+                                                {% else %}
+                                                    <i class="bi bi-tag"></i> {{ type_group.grouper|title }}
+                                                {% endif %}
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="d-flex flex-wrap gap-2">
+                                                {% for word_data in type_group.list %}
+                                                    {% if word_data.text %}
+                                                        <span class="badge bg-secondary">
+                                                            {{ word_data.text }}
+                                                        </span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <small class="text-muted d-block mt-2">
+                                                Total: <strong>{{ type_group.list|length }}</strong> palabra(s)
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Actions -->
+                <div class="mt-4 d-flex gap-2">
+                    <a href="{% url 'detector:home' %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-left"></i>
+                        Analizar Otro Texto
+                    </a>
+                    
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'detector:history' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-clock-history"></i>
+                            Ver Historial
+                        </a>
+                    {% endif %}
+                    
+                    <button onclick="window.print()" class="btn btn-outline-info">
+                        <i class="bi bi-printer"></i>
+                        Imprimir Resultado
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Información Adicional
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>ID del Análisis:</strong> {{ analysis.id }}</p>
+                        {% if analysis.user %}
+                            <p><strong>Usuario:</strong> {{ analysis.user.username }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {% if analysis.ip_address %}
+                            <p><strong>IP:</strong> {{ analysis.ip_address }}</p>
+                        {% endif %}
+                        <p><strong>Nivel de Confianza:</strong> {{ analysis.confidence|floatformat:2 }}</p>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-lightbulb"></i>
+                    <strong>Nota:</strong> Este análisis se realizó utilizando un autómata finito determinista (AFD) 
+                    que detecta patrones de lenguaje tóxico basado en expresiones regulares y reglas predefinidas.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+    .btn, .navbar, .footer {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+
+
+

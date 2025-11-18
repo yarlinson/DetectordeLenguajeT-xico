@@ -1,0 +1,418 @@
+{% extends 'detector/base.html' %}
+
+{% block title %}Inicio - Detector de Lenguaje Tóxico{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Main Analysis Form -->
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-search text-primary"></i>
+                    Analizar Texto
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" id="analysisForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="alert alert-info">
+                        Puedes <strong>ingresar texto</strong> o <strong>adjuntar un archivo (.pdf, .txt, .html)</strong>. Si envías ambos, se analizará el contenido del archivo.
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.text.id_for_label }}" class="form-label">
+                            {{ form.text.label }}
+                        </label>
+                        {{ form.text }}
+                        <div class="form-text">Máximo 10,000 caracteres si ingresas texto manualmente.</div>
+                        {% if form.text.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.text.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.document.id_for_label }}" class="form-label">
+                            {{ form.document.label }}
+                        </label>
+                        {{ form.document }}
+                        {% if form.document.help_text %}
+                            <div class="form-text">{{ form.document.help_text }}</div>
+                        {% endif %}
+                        {% if form.document.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.document.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary" id="analyzeBtn">
+                            <i class="bi bi-search"></i>
+                            <span class="loading spinner-border spinner-border-sm me-2" role="status"></span>
+                            Analizar
+                        </button>
+                    </div>
+                    {% if form.non_field_errors %}
+                        <div class="invalid-feedback d-block mt-3">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        <!-- Analysis Result (AJAX) -->
+        <div class="card mt-4" id="resultCard" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-clipboard-check text-success"></i>
+                    Resultado del Análisis
+                </h5>
+            </div>
+            <div class="card-body" id="resultContent">
+                <!-- Result content will be loaded here via AJAX -->
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-graph-up text-primary" style="font-size: 2rem;"></i>
+                        <h5 class="mt-2">{{ stats.total_analyses }}</h5>
+                        <p class="text-muted mb-0">Análisis Totales</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-6 mb-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-shield-check text-success" style="font-size: 1.5rem;"></i>
+                        <h6 class="mt-2">{{ stats.safe_analyses }}</h6>
+                        <small class="text-muted">Seguros</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-6 mb-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-shield-exclamation text-danger" style="font-size: 1.5rem;"></i>
+                        <h6 class="mt-2">{{ stats.toxic_analyses }}</h6>
+                        <small class="text-muted">Tóxicos</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toxicity Level Distribution -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-pie-chart"></i>
+                    Distribución por Nivel
+                </h6>
+            </div>
+            <div class="card-body">
+                {% for level, count in stats.toxicity_level_stats.items %}
+                    {% if count > 0 %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="toxicity-{{ level }}">
+                                <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+                                {{ level|title }}
+                            </span>
+                            <span class="badge bg-secondary">{{ count }}</span>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Quick Info -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Información Rápida
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        <strong>Detección en tiempo real</strong>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        <strong>Múltiples tipos de toxicidad</strong>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        <strong>Patrones personalizables</strong>
+                    </li>
+                    <li class="mb-0">
+                        <i class="bi bi-check-circle text-success"></i>
+                        <strong>Estadísticas detalladas</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('analysisForm');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const resultCard = document.getElementById('resultCard');
+    const resultContent = document.getElementById('resultContent');
+    
+    let isFileSubmission = false;
+
+    form.addEventListener('submit', function(e) {
+        if (isFileSubmission) {
+            return;
+        }
+
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const text = (formData.get('text') || '').trim();
+        const fileInput = form.querySelector('input[name="document"]');
+        const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+
+        if (!text && !hasFile) {
+            alert('Por favor, ingresa un texto o adjunta un archivo para analizar.');
+            return;
+        }
+
+        // Si hay un archivo, hacemos submit tradicional (el backend manejará la respuesta)
+        if (hasFile) {
+            isFileSubmission = true;
+            form.submit();
+            return;
+        }
+
+        // Sin archivo: usar análisis AJAX
+        // Show loading
+        toggleLoading(true);
+        analyzeBtn.disabled = true;
+
+        // Send AJAX request
+        fetch('{% url "detector:api_analyze_text" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ text: text })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayResult(data);
+                resultCard.style.display = 'block';
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al procesar el análisis.');
+        })
+        .finally(() => {
+            toggleLoading(false);
+            analyzeBtn.disabled = false;
+        });
+    });
+    
+    function displayResult(data) {
+        const toxicityColor = getToxicityColor(data.toxicity_level);
+        const toxicityIcon = data.is_toxic ? 'bi-shield-exclamation' : 'bi-shield-check';
+        const toxicityClass = data.is_toxic ? 'text-danger' : 'text-success';
+        const originLabel = data.source_type === 'file' ? 'Archivo adjunto' : 'Texto ingresado';
+        const fileDetails = data.source_type === 'file' && data.file_name
+            ? `${data.file_name}${data.file_type ? ' (' + data.file_type.toUpperCase() + ')' : ''}`
+            : '';
+
+        resultContent.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi ${toxicityIcon} ${toxicityClass}" style="font-size: 2rem;"></i>
+                        <div class="ms-3">
+                            <h5 class="mb-0">${data.is_toxic ? 'Contenido Tóxico Detectado' : 'Contenido Seguro'}</h5>
+                            <span class="badge bg-${toxicityColor} toxicity-badge">
+                                ${data.toxicity_level_display}
+                            </span>
+                            ${data.afd_state ? `<br><small class="text-muted">Estado AFD: <strong>${data.afd_state.toUpperCase()}</strong></small>` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Confianza:</strong>
+                        <div class="progress mt-1">
+                            <div class="progress-bar bg-${toxicityColor}" style="width: ${(data.confidence * 100).toFixed(1)}%">
+                                ${(data.confidence * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-0">
+                        <strong>Origen:</strong> ${originLabel}
+                        ${fileDetails ? `<br><strong>Archivo:</strong> ${fileDetails}` : ''}
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <strong>Tipos detectados:</strong>
+                        <p class="mb-0">${data.toxicity_types_display || 'Ninguno'}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Palabras detectadas:</strong>
+                        <p class="mb-0">${data.detected_words_count || 0}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Tipos de toxicidad detectados:</strong>
+                        <p class="mb-0">${data.toxicity_types ? data.toxicity_types.length : 0}</p>
+                    </div>
+                    
+                    <div class="mb-0">
+                        <strong>Fecha de análisis:</strong>
+                        <p class="mb-0">${formatDate(data.created_at)}</p>
+                    </div>
+                </div>
+            </div>
+            
+        `;
+        
+        // Añadir palabras detectadas por patrón si existen
+        if (data.detected_words && data.detected_words.length > 0) {
+            // Agrupar palabras por tipo
+            const wordsByType = {};
+            data.detected_words.forEach(word => {
+                if (!word || !word.text) {
+                    return;
+                }
+                if (!wordsByType[word.toxicity_type]) {
+                    wordsByType[word.toxicity_type] = new Set();
+                }
+                wordsByType[word.toxicity_type].add(word.text);
+            });
+            
+            if (Object.keys(wordsByType).length > 0) {
+                const wordsSection = document.createElement('div');
+                wordsSection.className = 'row mt-4';
+                
+                let wordsHTML = `
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-list-ul"></i>
+                                    Palabras Detectadas por Patrón
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                `;
+                
+                const typeInfo = {
+                    'insult': { icon: 'bi-chat-dots', name: 'Insultos', color: 'warning' },
+                    'threat': { icon: 'bi-exclamation-triangle', name: 'Amenazas', color: 'danger' },
+                    'hate': { icon: 'bi-heartbreak', name: 'Odio', color: 'danger' },
+                    'harassment': { icon: 'bi-person-x', name: 'Acoso', color: 'warning' },
+                    'profanity': { icon: 'bi-exclamation-circle', name: 'Profanidad', color: 'warning' }
+                };
+                
+                for (const [type, wordsSet] of Object.entries(wordsByType)) {
+                    const words = Array.from(wordsSet);
+                    const info = typeInfo[type] || { icon: 'bi-tag', name: type.charAt(0).toUpperCase() + type.slice(1), color: 'secondary' };
+                    
+                    wordsHTML += `
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">
+                                        <i class="bi ${info.icon} text-${info.color}"></i> ${info.name}
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex flex-wrap gap-2">
+                    `;
+                    
+                    words.forEach(word => {
+                        wordsHTML += `<span class="badge bg-secondary">${word}</span>`;
+                    });
+                    
+                    wordsHTML += `
+                                    </div>
+                                    <small class="text-muted d-block mt-2">
+                                        Total: <strong>${words.length}</strong> palabra(s)
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                wordsHTML += `
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                wordsSection.innerHTML = wordsHTML;
+                resultContent.appendChild(wordsSection);
+            }
+        }
+        
+        // Añadir texto resaltado si existe
+        if (data.highlighted_text) {
+            const highlightedSection = document.createElement('div');
+            highlightedSection.className = 'row mt-4';
+            highlightedSection.innerHTML = `
+                <div class="col-12">
+                    <h6><i class="bi bi-highlighter"></i> Texto con Palabras Detectadas Resaltadas:</h6>
+                    <div class="card bg-light">
+                        <div class="card-body highlighted-text">
+                        </div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">
+                        <i class="bi bi-info-circle"></i>
+                        Las palabras resaltadas indican contenido tóxico detectado por el AFD
+                    </small>
+                </div>
+            `;
+            
+            // Insertar el HTML resaltado de forma segura
+            const highlightedDiv = highlightedSection.querySelector('.highlighted-text');
+            highlightedDiv.innerHTML = data.highlighted_text;
+            
+            resultContent.appendChild(highlightedSection);
+        }
+    }
+});
+</script>
+{% endblock %}
+
+
+

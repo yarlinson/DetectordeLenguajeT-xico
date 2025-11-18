@@ -1,0 +1,302 @@
+{% extends 'detector/base.html' %}
+
+{% block title %}Estadísticas - Detector de Lenguaje Tóxico{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="bi bi-bar-chart text-primary"></i>
+            Estadísticas del Sistema
+        </h2>
+
+        <!-- General Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card stats-card text-center">
+                    <div class="card-body">
+                        <i class="bi bi-graph-up text-primary" style="font-size: 2.5rem;"></i>
+                        <h3 class="mt-2">{{ stats.total_analyses }}</h3>
+                        <p class="text-muted mb-0">Análisis Totales</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card stats-card text-center">
+                    <div class="card-body">
+                        <i class="bi bi-shield-check text-success" style="font-size: 2.5rem;"></i>
+                        <h3 class="mt-2">{{ stats.safe_analyses }}</h3>
+                        <p class="text-muted mb-0">Contenido Seguro</p>
+                        <small class="text-success">{{ stats.safety_rate|floatformat:1 }}%</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card stats-card text-center">
+                    <div class="card-body">
+                        <i class="bi bi-shield-exclamation text-danger" style="font-size: 2.5rem;"></i>
+                        <h3 class="mt-2">{{ stats.toxic_analyses }}</h3>
+                        <p class="text-muted mb-0">Contenido Tóxico</p>
+                        <small class="text-danger">{{ stats.toxicity_rate|floatformat:1 }}%</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card stats-card text-center">
+                    <div class="card-body">
+                        <i class="bi bi-percent text-info" style="font-size: 2.5rem;"></i>
+                        <h3 class="mt-2">{{ stats.toxicity_rate|floatformat:1 }}%</h3>
+                        <p class="text-muted mb-0">Tasa de Toxicidad</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toxicity Level Distribution -->
+        <div class="row mb-4">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-pie-chart"></i>
+                            Distribución por Nivel de Toxicidad
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for level, count in stats.toxicity_level_stats.items %}
+                            {% if count > 0 %}
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-circle-fill toxicity-{{ level }} me-2"></i>
+                                        <span class="fw-bold">{{ level|title }}</span>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-secondary fs-6">{{ count }}</span>
+                                        <small class="text-muted d-block">
+                                            {% if stats.total_analyses > 0 %}
+                                                {% widthratio count stats.total_analyses 100 as percentage %}
+                                                {{ percentage|floatformat:1 }}%
+                                            {% else %}
+                                                0%
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                <div class="progress mb-2" style="height: 8px;">
+                                    <div class="progress-bar bg-{{ level|yesno:'success,warning,danger,danger,dark' }}" 
+                                         style="width: {% if stats.total_analyses > 0 %}{% widthratio count stats.total_analyses 100 %}%{% else %}0%{% endif %}">
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toxicity Type Distribution -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-tags"></i>
+                            Distribución por Tipo de Toxicidad
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for toxicity_type, count in stats.toxicity_type_stats.items %}
+                            {% if count > 0 %}
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-tag-fill text-warning me-2"></i>
+                                        <span class="fw-bold">{{ toxicity_type|title }}</span>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-warning text-dark fs-6">{{ count }}</span>
+                                        <small class="text-muted d-block">
+                                            {% if stats.toxic_analyses > 0 %}
+                                                {% widthratio count stats.toxic_analyses 100 as percentage %}
+                                                {{ percentage|floatformat:1 }}%
+                                            {% else %}
+                                                0%
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                <div class="progress mb-2" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" 
+                                         style="width: {% if stats.toxic_analyses > 0 %}{% widthratio count stats.toxic_analyses 100 %}%{% else %}0%{% endif %}">
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Statistics -->
+        {% if recent_stats %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar-week"></i>
+                        Estadísticas Recientes (Últimos 30 días)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Total</th>
+                                    <th>Seguros</th>
+                                    <th>Tóxicos</th>
+                                    <th>Tasa Toxicidad</th>
+                                    <th>Detalles</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in recent_stats %}
+                                    <tr>
+                                        <td>{{ stat.date|date:"d/m/Y" }}</td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ stat.total_analyses }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">{{ stat.safe_analyses }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-danger">{{ stat.toxic_analyses }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress me-2" style="width: 60px; height: 6px;">
+                                                    <div class="progress-bar bg-danger" 
+                                                         style="width: {{ stat.toxicity_rate }}%">
+                                                    </div>
+                                                </div>
+                                                <small>{{ stat.toxicity_rate|floatformat:1 }}%</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-info" 
+                                                    onclick="showDayDetails('{{ stat.date|date:"Y-m-d" }}')">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Additional Information -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-info-circle"></i>
+                            Información del Sistema
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success"></i>
+                                <strong>Sistema:</strong> Detector de Toxicidad con AFD
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success"></i>
+                                <strong>Versión:</strong> 1.0.0
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle text-success"></i>
+                                <strong>Framework:</strong> Django 5.2.7
+                            </li>
+                            <li class="mb-0">
+                                <i class="bi bi-check-circle text-success"></i>
+                                <strong>Última actualización:</strong> {{ "now"|date:"d/m/Y" }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-lightbulb"></i>
+                            Consejos de Uso
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">
+                                <i class="bi bi-arrow-right text-primary"></i>
+                                El sistema detecta múltiples tipos de toxicidad
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-arrow-right text-primary"></i>
+                                Los patrones se pueden personalizar desde el admin
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-arrow-right text-primary"></i>
+                                Las estadísticas se actualizan en tiempo real
+                            </li>
+                            <li class="mb-0">
+                                <i class="bi bi-arrow-right text-primary"></i>
+                                El análisis es confidencial y seguro
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Day Details Modal -->
+<div class="modal fade" id="dayDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del Día</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="dayDetailsContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showDayDetails(date) {
+    // This would typically make an AJAX call to get detailed statistics for a specific day
+    // For now, we'll show a placeholder
+    document.getElementById('dayDetailsContent').innerHTML = `
+        <div class="text-center py-4">
+            <i class="bi bi-calendar-date text-muted" style="font-size: 3rem;"></i>
+            <h5 class="mt-3">Estadísticas del ${date}</h5>
+            <p class="text-muted">Los detalles específicos del día se cargarían aquí.</p>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('dayDetailsModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,32 @@
+{
+  "insult": [
+    "\\b(estúpido|estupido|estúpida|estupida|idiota|imbécil|imbecil|imbecilazo|tonto|tontito|burro|animal|cerdo|cretino|bobo|tarado|bruto|ignorante|baboso|patético|patetico|patán|patan|payaso|payasito|soquete|miserable|despreciable|escoria|pelmazo|gandul|parásito|parasito|escoria humana|desperdicio humano)\\b",
+    "\\b(puto|puta|putita|perra|perrito|perra estúpida|perra estupida|perra inmunda|perro sarnoso|hijo de puta|hija de puta|hijo del demonio|cabrón|cabron|cabronazo|gilipollas|capullo|pelotudo|boludo|mamón|mamon|pendejo|pendeja|maldito|maldita|zorra|zorr@|inútil|inutil|inepto|inepta|cretina|bastardo|bastarda|degenerado|degenerada|bestia|animal horrible)\\b",
+    "\\b(inútil|inutil|fracasado|fracasada|perdedor|perdedora|payaso inútil|idiota inútil|inservible|inepto|inepta|apestoso humano|apestosa humana|pobre desgraciado|infeliz|escoria viviente|asqueroso humano|asquerosa humana)\\b",
+    "\\b(asqueroso|asquerosa|repugnante|apestoso|apestosa|rancio|rancia|gusano|gusana|sabandija|lacra|larva|holgazán|holgazan|vago|vaga|zángano|zangana|sucio animal|puerco|perra infeliz|cerda|cerdo miserable|basura)\\b"
+  ],
+  "threat": [
+    "\\b(te voy a matar|te mato|voy a matarte|mereces morir|te mereces morir|te voy a romper|te rompo|te destrozo|te destruyo|te haré pedazos|te hare pedazos|voy a acabar contigo|voy a partirte en dos)\\b",
+    "\\b(te voy a hacer daño|te voy a lastimar|te voy a golpear|te voy a pegar|te golpeo|te pego|te voy a partir la cara|te parto la cara|te voy a reventar|te reviento|te voy a quemar|te voy a violar|ojalá te violen|ojala te violen|ojalá te maten)\\b",
+    "\\b(vas a pagar|te vas a arrepentir|te voy a joder|te jodo|te voy a hacer sufrir|te haré sufrir|quiero verte muerto|muérete|muerete|desearía verte muerto|desaparece o muere|te voy a degollar|te voy a apuñalar|te voy a disparar|te voy a ejecutar|nadie te va a salvar)\\b",
+    "\\b(si te encuentro te mato|si te veo te mato|cuando te vea te mato|te voy a buscar y te mataré|te voy a desaparecer|voy a ir por ti|no vas a vivir mucho|no saldrás vivo|no saldrás viva|te haré pagar|te enterraré vivo|te enterraré viva|voy a destruir tu vida|te voy a violar lentamente)\\b"
+  ],
+  "hate": [
+    "\\b(odio|odio a todos|odio a toda tu clase|detesto|detesto a esa gente|asco|me das asco|repugnante|despreciable|desprecio|los odio|los detesto|malditos todos ustedes)\\b",
+    "\\b(racista|racistas|nazi|nazis|fascista|fascistas|supremacista|supremacistas|xenófobo|xenofobo|xenófobos|homófobo|homofobo|homófobos|machista|misógino|misogino|misandrico|misándrico|homofóbico|homofobico)\\b",
+    "\\b(muerte a|maten a|muerte para|exterminar|exterminio|eliminar|eliminarlos|destruir|destruyan|expulsar|expúlsenlos|expulsenlos|linchar|linchen|quemar vivos|pesticida humano|aniquílenlos|aniquilenlos|acaben con ellos|no merecen existir|que los exterminen)\\b",
+    "\\b(no deberían existir|no deberian existir|deberían desaparecer|deberian desaparecer|hay que erradicarlos|hay que erradicarte|son una plaga|son basura|no son humanos|no merecen vivir|deberían extinguirse|deberian extinguirse|hay que borrarles del mapa|deberías pudrirte|sucios animales humanos)\\b"
+  ],
+  "harassment": [
+    "\\b(acosar|acoso|molestar|hostigar|hostigarte|fastidiar|fastidiarte|importunar|acosándote|acosandote|molestándote|molestandote|perseguir|perseguiros|no voy a parar|no voy a dejar de molestarte)\\b",
+    "\\b(seguir|seguiré|seguirte|perseguiré|perseguirte|vigilar|vigilándote|vigilandote|espiar|espiarte|controlarte|obsesionado contigo|obsesionada contigo|no te dejaré en paz|no te dejare en paz|no vas a escapar|no podrás escapar|voy a estar detrás de ti|voy a estar detras de ti|voy a seguir tus pasos)\\b",
+    "\\b(amenazar|amenazarte|intimidar|intimidarte|chantajear|chantajearte|extorsionar|extorsionarte|presionarte|no puedes escapar|voy a estar encima de ti|voy a estar detrás de ti|estoy vigilando cada paso|te voy a acosar día y noche|te voy a acosar dia y noche|no voy a soltarme de ti)\\b",
+    "\\b(te voy a acosar|te voy a seguir en todas partes|voy a llamarte todos los días|voy a llamarte todos los dias|te voy a escribir sin parar|no podrás ignorarme|no vas a librarte de mí|no vas a librarte de mi|te voy a perseguir toda la vida|voy a arruinarte la vida|voy a exponer todo sobre ti)\\b"
+  ],
+  "profanity": [
+    "\\b(joder|jodete|jódete|coño|cojones|hostia|ostia|carajo|caray|caramba|mierdas|mierdita|maldita sea|maldito sea|chingada|chingado|chingada madre|chingado todo|puta madre)\\b",
+    "\\b(mierda|mierdas|mierdita|caca|cagada|cagadas|pedo|pedazo de mierda|cagar|cagarte|cagarme|mear|mearte|pis|apestas|apestan|apestoso|apestosa|de mierda|asquerosa mierda|maldita mierda)\\b",
+    "\\b(fuck|fucking|shit|bullshit|damn|dammit|hell|bloody hell|bitch|son of a bitch|asshole|jerk|moron|dumbass|prick|bastard|bastards|motherfucker|son of a whore)\\b",
+    "\\b(pucha|puchica|rayos|caracoles|demonios|infierno|malnacido|malnacida|perra|perrito del demonio|perrera|cagon|cagona|gil|gilazo|pelotudo|boluda|chingada perra|perra de mierda|maldita perra)\\b"
+  ]
+}

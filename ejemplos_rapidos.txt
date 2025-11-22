@@ -1,0 +1,82 @@
+=== TEXTOS SEGUROS ===
+Hola, ¿cómo estás? Espero que tengas un buen día.
+El proyecto está avanzando muy bien. Todos estamos trabajando en equipo.
+Gracias por tu ayuda con la tarea. Realmente lo aprecio mucho.
+
+=== INSULTOS (LOW) ===
+Eres un estúpido y no sabes hacer nada bien.
+Esa persona es un idiota completo, no entiende nada.
+Qué imbécil eres, siempre cometes los mismos errores.
+Eres un inútil, no sirves para nada.
+Esa mujer es una puta y no merece respeto.
+Ese tipo es un puto que no sabe lo que hace.
+Eres un fracasado que nunca logrará nada en la vida.
+Qué asqueroso eres, me das repugnancia.
+
+=== AMENAZAS (EXTREME) ===
+Te voy a matar si no haces lo que te digo.
+Te mato si vuelves a hacer eso otra vez.
+Mereces morir por lo que hiciste.
+Vas a pagar caro, te voy a buscar y te mataré.
+Te voy a golpear hasta dejarte inconsciente.
+Te parto la cara si me vuelves a hablar así.
+Te voy a romper los huesos, mejor cuídate.
+Sé donde vives, mejor ten cuidado.
+Conozco tu dirección, no te salvarás.
+Te estoy vigilando, sé todo lo que haces.
+
+=== ODIO (EXTREME) ===
+Odio a esa gente, no deberían existir.
+Detesto a todos ellos, son una plaga.
+Los odio profundamente, deberían desaparecer.
+Son escoria humana, no merecen vivir.
+Esa raza es inferior, no son humanos.
+Son una enfermedad que hay que eliminar.
+Hay que acabar con todos ellos, son el problema.
+Debemos eliminarlos, no merecen derechos.
+Que se mueran todos, el mundo estaría mejor.
+Son animales, peor que animales.
+
+=== ACOSO (MEDIUM) ===
+Te estoy siguiendo y sé todo lo que haces.
+No te dejaré en paz hasta que hagas lo que quiero.
+Te voy a acosar hasta que te rindas.
+Voy a perseguirte sin descanso.
+No puedo dejar de pensar en ti, te vigilo constantemente.
+Te voy a molestar todos los días hasta que cambies.
+No escaparás de mí, te seguiré a todas partes.
+Te tengo ubicado y sé dónde estás siempre.
+
+=== PROFANIDAD (LOW) ===
+Joder, qué problema tan grande tenemos.
+Coño, no puedo creer que haya pasado esto.
+Mierda, todo salió mal otra vez.
+Maldita sea, siempre pasa lo mismo.
+Me cago en dios, esto es terrible.
+Joder dios, por qué me pasa esto a mí.
+Puto dios, nada me sale bien.
+Me cago en la virgen, qué desastre.
+
+=== TEXTOS MIXTOS ===
+Eres un estúpido y te voy a matar si no cambias.
+Idiota, te voy a golpear hasta dejarte inconsciente.
+Odio a esa gente, hay que eliminarlos todos.
+Detesto a esos animales, merecen morir.
+Te voy a seguir y cuando te encuentre te mato.
+Joder, eres un puto idiota que no sabe nada.
+Mierda, qué estúpido eres, siempre arruinas todo.
+
+=== VARIANTES COLOMBIANAS ===
+Parce, ese man es un hijueputa que no sirve para nada.
+Ese tipo es un gonorrea que siempre jode todo.
+Qué malparido, siempre hace las cosas mal.
+Ese hijueputa no sabe hacer nada bien.
+Qué gonorrea de persona, siempre arruina todo.
+
+=== CASOS ESPECIALES ===
+En la película, el villano dijo "te voy a matar" al héroe.
+El personaje del libro es un idiota, pero la historia es buena.
+HOLA ERES UN IDIOTA
+eReS uN eStÚpIdO
+Eres un  estúpido  (con espacios extra)
+

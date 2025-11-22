@@ -15,9 +15,20 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.auth import logout
+from django.contrib import messages
+from django.shortcuts import redirect
 from django.urls import path, include
 
+def admin_logout_view(request):
+    """Vista personalizada para logout del admin que acepta GET y POST"""
+    if request.user.is_authenticated:
+        logout(request)
+        messages.success(request, 'Has cerrado sesión correctamente.')
+    return redirect('/')
+
 urlpatterns = [
+    path('admin/logout/', admin_logout_view, name='admin_logout'),
     path('admin/', admin.site.urls),
     path('', include('detector.urls')),
 ]

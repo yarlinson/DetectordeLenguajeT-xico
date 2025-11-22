@@ -288,13 +288,14 @@ class ToxicDetectorAutomaton:
         # Ordenar palabras por posición
         sorted_words = sorted(detected_words, key=lambda w: w.start)
         
-        # Colores por tipo de toxicidad
+        # Colores por tipo de toxicidad (coinciden con los niveles de toxicidad)
+        # LOW: #ffc107 (naranja claro), MEDIUM: #fd7e14 (naranja), EXTREME: #dc3545 (rojo)
         color_map = {
-            ToxicityType.INSULT: '#ffc107',      # Amarillo (LOW)
-            ToxicityType.PROFANITY: '#ffc107',   # Amarillo (LOW)
+            ToxicityType.INSULT: '#ffc107',      # Naranja claro (LOW)
+            ToxicityType.PROFANITY: '#ffc107',   # Naranja claro (LOW)
             ToxicityType.HARASSMENT: '#fd7e14',  # Naranja (MEDIUM)
             ToxicityType.THREAT: '#dc3545',      # Rojo (EXTREME)
-            ToxicityType.HATE: '#6f42c1'         # Morado (EXTREME)
+            ToxicityType.HATE: '#dc3545'         # Rojo (EXTREME)
         }
         
         segments: List[str] = []

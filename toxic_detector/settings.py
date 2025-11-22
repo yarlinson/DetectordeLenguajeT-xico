@@ -25,7 +25,11 @@ SECRET_KEY = 'django-insecure-cata4=+v51ltba(8zx_jbhev$kdb2(&#l6#elvoc!m3=gs*^))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+
+# Configuración de logout
+LOGOUT_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/admin/'
 
 
 # Application definition
@@ -116,6 +120,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

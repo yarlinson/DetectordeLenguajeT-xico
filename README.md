@@ -13,6 +13,23 @@ Un sistema inteligente de análisis de texto desarrollado en Django que utiliza 
 - **API REST** para integración con otros sistemas
 - **Patrones personalizables** desde el panel de admin
 
+## ⚡ Inicio Rápido con Docker
+
+```bash
+# 1. Clonar el proyecto
+git clone <url-del-repositorio>
+cd toxic-detector
+
+# 2. Levantar el contenedor
+docker-compose up --build
+
+# 3. Crear superusuario (en otra terminal)
+docker-compose exec web python manage.py createsuperuser
+
+# 4. Acceder a la aplicación
+# http://localhost:8000/
+```
+
 ## 🛠️ Tecnologías Utilizadas
 
 - **Backend**: Django 5.2.7
@@ -23,13 +40,20 @@ Un sistema inteligente de análisis de texto desarrollado en Django que utiliza 
 
 ## 📋 Requisitos
 
+### Opción 1: Docker (Recomendado)
+- Docker
+- Docker Compose
+
+### Opción 2: Instalación Local
 - Python 3.8+
 - pip
 - Entorno virtual (recomendado)
 
 ## 🔧 Instalación
 
-### 1. Clonar o descargar el proyecto
+### Opción 1: Docker (Recomendado) 🐳
+
+#### 1. Clonar o descargar el proyecto
 
 ```bash
 # Si tienes git
@@ -39,7 +63,115 @@ cd toxic-detector
 # O simplemente descargar y extraer el archivo ZIP
 ```
 
-### 2. Crear y activar entorno virtual
+#### 2. Construir y ejecutar con Docker Compose
+
+```bash
+# Construir y levantar el contenedor
+docker-compose up --build
+
+# O en modo detached (en segundo plano)
+docker-compose up -d --build
+```
+
+#### 3. Crear superusuario (primera vez)
+
+```bash
+# Ejecutar comando dentro del contenedor
+docker-compose exec web python manage.py createsuperuser
+```
+
+#### 4. Acceder a la aplicación
+
+- **Aplicación principal**: http://localhost:8000/
+- **Panel de administración**: http://localhost:8000/admin/
+
+#### Comandos útiles de Docker Compose
+
+```bash
+# Ver logs del contenedor
+docker-compose logs -f
+
+# Detener el contenedor
+docker-compose down
+
+# Detener y eliminar volúmenes (elimina la base de datos)
+docker-compose down -v
+
+# Ejecutar comandos Django dentro del contenedor
+docker-compose exec web python manage.py <comando>
+
+# Ejecutar shell de Django
+docker-compose exec web python manage.py shell
+
+# Reconstruir la imagen
+docker-compose build --no-cache
+
+# Ver contenedores en ejecución
+docker-compose ps
+
+# Reiniciar el contenedor
+docker-compose restart
+```
+
+#### Usar Docker sin Docker Compose
+
+Si prefieres usar solo Docker (sin docker-compose):
+
+```bash
+# Construir la imagen
+docker build -t toxic-detector .
+
+# Ejecutar el contenedor
+docker run -d \
+  --name toxic_detector \
+  -p 8000:8000 \
+  -v $(pwd):/app \
+  toxic-detector
+
+# Crear superusuario
+docker exec -it toxic_detector python manage.py createsuperuser
+
+# Ver logs
+docker logs -f toxic_detector
+
+# Detener el contenedor
+docker stop toxic_detector
+
+# Eliminar el contenedor
+docker rm toxic_detector
+```
+
+#### Solución de problemas con Docker
+
+```bash
+# Si el contenedor no inicia, verifica los logs
+docker-compose logs web
+
+# Si hay problemas con permisos en Windows
+# Asegúrate de compartir la unidad en Docker Desktop
+
+# Si necesitas limpiar todo y empezar de nuevo
+docker-compose down -v
+docker system prune -a
+docker-compose up --build
+
+# Si el puerto 8000 está ocupado, cambia el puerto en docker-compose.yml
+# Cambia "8000:8000" por "8080:8000" y accede en http://localhost:8080
+```
+
+### Opción 2: Instalación Local
+
+#### 1. Clonar o descargar el proyecto
+
+```bash
+# Si tienes git
+git clone <url-del-repositorio>
+cd toxic-detector
+
+# O simplemente descargar y extraer el archivo ZIP
+```
+
+#### 2. Crear y activar entorno virtual
 
 ```bash
 # Crear entorno virtual
@@ -53,13 +185,13 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-### 3. Instalar dependencias
+#### 3. Instalar dependencias
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configurar la base de datos
+#### 4. Configurar la base de datos
 
 ```bash
 # Crear migraciones
@@ -69,19 +201,19 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 5. Crear superusuario
+#### 5. Crear superusuario
 
 ```bash
 python manage.py createsuperuser
 ```
 
-### 6. Ejecutar el servidor
+#### 6. Ejecutar el servidor
 
 ```bash
 python manage.py runserver
 ```
 
-### 7. Acceder a la aplicación
+#### 7. Acceder a la aplicación
 
 - **Aplicación principal**: http://127.0.0.1:8000/
 - **Panel de administración**: http://127.0.0.1:8000/admin/
@@ -94,6 +226,21 @@ python manage.py runserver
 2. Ingresa el texto que deseas analizar
 3. Haz clic en "Analizar Texto"
 4. Revisa los resultados del análisis
+
+### 📋 Ejemplos para Probar
+
+Para probar el sistema con diferentes casos, tienes dos opciones:
+
+1. **[EJEMPLOS_PRUEBA.md](EJEMPLOS_PRUEBA.md)** - Documento completo con:
+   - Textos seguros (sin toxicidad)
+   - Ejemplos de cada tipo de toxicidad (insultos, amenazas, odio, acoso, profanidad)
+   - Textos con diferentes niveles de toxicidad
+   - Casos especiales y edge cases
+   - Textos mixtos con múltiples tipos de toxicidad
+   - Variantes regionales (colombiano)
+   - Guía de uso para pruebas
+
+2. **[ejemplos_rapidos.txt](ejemplos_rapidos.txt)** - Archivo simple con ejemplos listos para copiar y pegar rápidamente
 
 ### Panel de Administración
 
@@ -194,21 +341,59 @@ El sistema proporciona estadísticas detalladas:
 
 ## 🐛 Solución de Problemas
 
-### Error de migraciones
+### Docker
+
+#### Error de migraciones en Docker
+
+```bash
+# Ejecutar migraciones manualmente
+docker-compose exec web python manage.py migrate
+
+# O forzar migraciones
+docker-compose exec web python manage.py migrate --fake-initial
+```
+
+#### Puerto ocupado en Docker
+
+```bash
+# Cambiar el puerto en docker-compose.yml
+# Cambia "8000:8000" por "8080:8000"
+# Luego accede en http://localhost:8080
+```
+
+#### Problemas con volúmenes en Docker
+
+```bash
+# Si los cambios no se reflejan, reconstruye la imagen
+docker-compose down
+docker-compose build --no-cache
+docker-compose up
+```
+
+#### Error "Permission denied" en Docker (Linux/Mac)
+
+```bash
+# Asegúrate de que el script entrypoint.sh tenga permisos de ejecución
+chmod +x entrypoint.sh
+```
+
+### Instalación Local
+
+#### Error de migraciones
 
 ```bash
 # Si hay problemas con migraciones
 python manage.py migrate --fake-initial
 ```
 
-### Error de permisos
+#### Error de permisos
 
 ```bash
 # En Linux/Mac, asegúrate de tener permisos de escritura
 chmod +x manage.py
 ```
 
-### Puerto ocupado
+#### Puerto ocupado
 
 ```bash
 # Usar un puerto diferente

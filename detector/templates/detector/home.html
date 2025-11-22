@@ -140,6 +140,44 @@
             </div>
         </div>
 
+        <!-- Toxicity Type Distribution (Patrones) -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-tags"></i>
+                    Distribución por Patrón
+                </h6>
+            </div>
+            <div class="card-body">
+                {% for toxicity_type, count in stats.toxicity_type_stats.items %}
+                    {% if count > 0 %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>
+                                {% if toxicity_type == 'insult' %}
+                                    <i class="bi bi-chat-dots" style="font-size: 0.75rem; color: #ffc107;"></i>
+                                {% elif toxicity_type == 'threat' %}
+                                    <i class="bi bi-exclamation-triangle" style="font-size: 0.75rem; color: #dc3545;"></i>
+                                {% elif toxicity_type == 'hate' %}
+                                    <i class="bi bi-heartbreak" style="font-size: 0.75rem; color: #dc3545;"></i>
+                                {% elif toxicity_type == 'harassment' %}
+                                    <i class="bi bi-person-x" style="font-size: 0.75rem; color: #fd7e14;"></i>
+                                {% elif toxicity_type == 'profanity' %}
+                                    <i class="bi bi-exclamation-circle" style="font-size: 0.75rem; color: #ffc107;"></i>
+                                {% else %}
+                                    <i class="bi bi-tag-fill text-secondary" style="font-size: 0.75rem;"></i>
+                                {% endif %}
+                                {{ toxicity_type|title }}
+                            </span>
+                            <span class="badge bg-secondary">{{ count }}</span>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                {% if not stats.toxicity_type_stats or stats.toxicity_type_stats.items|length == 0 %}
+                    <p class="text-muted mb-0 text-center small">No hay datos disponibles</p>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Quick Info -->
         <div class="card mt-3">
             <div class="card-header">
@@ -303,86 +341,127 @@ document.addEventListener('DOMContentLoaded', function() {
             
         `;
         
-        // Añadir palabras detectadas por patrón si existen
-        if (data.detected_words && data.detected_words.length > 0) {
+        // Añadir palabras detectadas por patrón si existen tipos detectados
+        if (data.toxicity_types && data.toxicity_types.length > 0) {
             // Agrupar palabras por tipo
             const wordsByType = {};
-            data.detected_words.forEach(word => {
-                if (!word || !word.text) {
-                    return;
-                }
-                if (!wordsByType[word.toxicity_type]) {
-                    wordsByType[word.toxicity_type] = new Set();
-                }
-                wordsByType[word.toxicity_type].add(word.text);
-            });
+            if (data.detected_words && data.detected_words.length > 0) {
+                data.detected_words.forEach(word => {
+                    if (!word || !word.text) {
+                        return;
+                    }
+                    if (!wordsByType[word.toxicity_type]) {
+                        wordsByType[word.toxicity_type] = new Set();
+                    }
+                    wordsByType[word.toxicity_type].add(word.text);
+                });
+            }
             
-            if (Object.keys(wordsByType).length > 0) {
-                const wordsSection = document.createElement('div');
-                wordsSection.className = 'row mt-4';
-                
-                let wordsHTML = `
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-list-ul"></i>
-                                    Palabras Detectadas por Patrón
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                `;
-                
-                const typeInfo = {
-                    'insult': { icon: 'bi-chat-dots', name: 'Insultos', color: 'warning' },
-                    'threat': { icon: 'bi-exclamation-triangle', name: 'Amenazas', color: 'danger' },
-                    'hate': { icon: 'bi-heartbreak', name: 'Odio', color: 'danger' },
-                    'harassment': { icon: 'bi-person-x', name: 'Acoso', color: 'warning' },
-                    'profanity': { icon: 'bi-exclamation-circle', name: 'Profanidad', color: 'warning' }
+            const wordsSection = document.createElement('div');
+            wordsSection.className = 'row mt-4';
+            
+            let wordsHTML = `
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-ul"></i>
+                                Palabras Detectadas por Patrón
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+            `;
+            
+            const typeInfo = {
+                'insult': { 
+                    icon: 'bi-chat-dots', 
+                    name: 'Insultos', 
+                    bgColor: '#ffc107', 
+                    textColor: '#000',
+                    badgeColor: '#ffc107'
+                },
+                'threat': { 
+                    icon: 'bi-exclamation-triangle', 
+                    name: 'Amenazas', 
+                    bgColor: '#dc3545', 
+                    textColor: '#fff',
+                    badgeColor: '#dc3545'
+                },
+                'hate': { 
+                    icon: 'bi-heartbreak', 
+                    name: 'Odio', 
+                    bgColor: '#dc3545', 
+                    textColor: '#fff',
+                    badgeColor: '#dc3545'
+                },
+                'harassment': { 
+                    icon: 'bi-person-x', 
+                    name: 'Acoso', 
+                    bgColor: '#fd7e14', 
+                    textColor: '#000',
+                    badgeColor: '#fd7e14'
+                },
+                'profanity': { 
+                    icon: 'bi-exclamation-circle', 
+                    name: 'Profanidad', 
+                    bgColor: '#ffc107', 
+                    textColor: '#000',
+                    badgeColor: '#ffc107'
+                }
+            };
+            
+            // Mostrar todos los tipos detectados, incluso si no tienen palabras específicas
+            data.toxicity_types.forEach(type => {
+                const words = wordsByType[type] ? Array.from(wordsByType[type]) : [];
+                const info = typeInfo[type] || { 
+                    icon: 'bi-tag', 
+                    name: type.charAt(0).toUpperCase() + type.slice(1), 
+                    bgColor: '#6c757d', 
+                    textColor: '#fff',
+                    badgeColor: '#6c757d'
                 };
                 
-                for (const [type, wordsSet] of Object.entries(wordsByType)) {
-                    const words = Array.from(wordsSet);
-                    const info = typeInfo[type] || { icon: 'bi-tag', name: type.charAt(0).toUpperCase() + type.slice(1), color: 'secondary' };
-                    
-                    wordsHTML += `
-                        <div class="col-md-6 mb-3">
-                            <div class="card h-100">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0">
-                                        <i class="bi ${info.icon} text-${info.color}"></i> ${info.name}
-                                    </h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex flex-wrap gap-2">
-                    `;
-                    
-                    words.forEach(word => {
-                        wordsHTML += `<span class="badge bg-secondary">${word}</span>`;
-                    });
-                    
-                    wordsHTML += `
-                                    </div>
-                                    <small class="text-muted d-block mt-2">
-                                        Total: <strong>${words.length}</strong> palabra(s)
-                                    </small>
-                                </div>
+                wordsHTML += `
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100" style="border-left: 4px solid ${info.bgColor};">
+                            <div class="card-header" style="background-color: ${info.bgColor}; color: ${info.textColor};">
+                                <h6 class="mb-0">
+                                    <i class="bi ${info.icon}"></i> ${info.name}
+                                </h6>
                             </div>
-                        </div>
-                    `;
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-2">
+                `;
+                
+                if (words.length > 0) {
+                    words.forEach(word => {
+                        wordsHTML += `<span class="badge" style="background-color: ${info.badgeColor}; color: ${info.textColor};">${word}</span>`;
+                    });
+                } else {
+                    wordsHTML += `<span class="text-muted">No se encontraron palabras específicas para este patrón</span>`;
                 }
                 
                 wordsHTML += `
                                 </div>
+                                <small class="text-muted d-block mt-2">
+                                    Total: <strong>${words.length}</strong> palabra(s)
+                                </small>
                             </div>
                         </div>
                     </div>
                 `;
-                
-                wordsSection.innerHTML = wordsHTML;
-                resultContent.appendChild(wordsSection);
-            }
+            });
+            
+            wordsHTML += `
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            wordsSection.innerHTML = wordsHTML;
+            resultContent.appendChild(wordsSection);
         }
         
         // Añadir texto resaltado si existe

@@ -204,25 +204,48 @@ class ToxicDetectorAutomaton:
         seen_spans = set()
         a = 0;
 
-        # Buscar todos los patrones en el texto (usando el texto original para mantener posiciones)
+        # Normalizar el texto para búsqueda: reemplazar saltos de línea y espacios múltiples por espacios simples
+        # Esto permite detectar patrones de múltiples palabras incluso si hay saltos de línea en el PDF
+        import re as re_module
+        normalized_text = re_module.sub(r'\s+', ' ', text)  # Reemplaza cualquier secuencia de espacios/saltos de línea por un solo espacio
+
+        # Buscar todos los patrones en el texto normalizado (pero usar el texto original para posiciones)
         for toxicity_type, patterns in self.toxic_patterns.items():
             for pattern in patterns:
-                # Buscar todas las coincidencias del patrón en el texto original
+                # Buscar todas las coincidencias del patrón en el texto normalizado
                 # pero usando re.IGNORECASE para que sea case-insensitive
-                for match in re.finditer(pattern, text, re.IGNORECASE):
+                for match in re.finditer(pattern, normalized_text, re.IGNORECASE):
                     a = a+1;
-                    start_pos = match.start()
-                    end_pos = match.end()
+                    matched_text_normalized = match.group()  # Texto encontrado en el texto normalizado
+                    start_pos_normalized = match.start()
+                    end_pos_normalized = match.end()
+                    
+                    # Buscar el texto correspondiente en el texto original
+                    # Usar una búsqueda flexible que ignore espacios múltiples y saltos de línea
+                    pattern_flexible = re.escape(matched_text_normalized)
+                    pattern_flexible = pattern_flexible.replace(r'\ ', r'\s+')  # Permitir espacios múltiples/saltos de línea
+                    
+                    # Buscar en el texto original con el patrón flexible
+                    original_match = re.search(pattern_flexible, text, re.IGNORECASE)
+                    if original_match:
+                        start_pos = original_match.start()
+                        end_pos = original_match.end()
+                        matched_text = original_match.group()  # Texto del original (puede tener saltos de línea)
+                    else:
+                        # Si no se encuentra en el original, usar las posiciones del normalizado
+                        # Esto puede pasar si hay caracteres especiales, pero es raro
+                        start_pos = start_pos_normalized
+                        end_pos = end_pos_normalized
+                        matched_text = matched_text_normalized
+                    
                     print(f"texto: {text} . a: {a}")
-                    print(f"Found match: {match.group()} at {start_pos}-{end_pos}")
+                    print(f"Found match: {matched_text} at {start_pos}-{end_pos}")
                     # Evitar duplicados exactos del mismo segmento
                     span_key = (start_pos, end_pos)
                     if span_key in seen_spans:
                         continue
                     seen_spans.add(span_key)
                     print(f"seen_spans: {seen_spans}")
-
-                    matched_text = match.group()  # Texto original con mayúsculas/minúsculas
 
                     # Crear objeto DetectedWord con el texto original
                     detected_word = DetectedWord(

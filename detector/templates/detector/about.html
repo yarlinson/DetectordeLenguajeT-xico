@@ -167,23 +167,54 @@
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-bar-chart"></i>
-                    Distribución de Patrones por Tipo
+                    Distribución de Patrones y Palabras/Frases por Tipo
                 </h5>
             </div>
             <div class="card-body">
                 <div class="row">
-                    {% for toxicity_type, count in automaton_stats.patterns_by_type.items %}
+                    {% for item in automaton_stats.patterns_with_words %}
                         <div class="col-md-4 mb-3">
-                            <div class="card bg-light">
+                            <div class="card bg-light h-100">
                                 <div class="card-body text-center">
-                                    <i class="bi bi-tag-fill text-warning" style="font-size: 1.5rem;"></i>
-                                    <h6 class="mt-2">{{ toxicity_type|title }}</h6>
-                                    <span class="badge bg-primary fs-6">{{ count }}</span>
-                                    <br><small class="text-muted">patrones</small>
+                                    <i class="bi {{ item.icon }} text-{{ item.color }}" style="font-size: 1.5rem;"></i>
+                                    <h6 class="mt-2">{{ item.name }}</h6>
+                                    
+                                    <div class="mt-3">
+                                        <span class="badge bg-primary fs-6">{{ item.pattern_count }}</span>
+                                        <br><small class="text-muted">patrones regex</small>
+                                    </div>
+                                    
+                                    <div class="mt-2">
+                                        <span class="badge bg-success fs-6">{{ item.word_count }}</span>
+                                        <br><small class="text-muted">palabras/frases</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     {% endfor %}
+                </div>
+                
+                <!-- Resumen General -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h5 class="mb-3">Resumen General</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <i class="bi bi-tags-fill" style="font-size: 1.5rem;"></i>
+                                        <h6 class="mt-2">Total de Patrones Regex</h6>
+                                        <span class="badge bg-light text-dark fs-5">{{ automaton_stats.total_patterns }}</span>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <i class="bi bi-list-ul" style="font-size: 1.5rem;"></i>
+                                        <h6 class="mt-2">Total de Palabras/Frases</h6>
+                                        <span class="badge bg-light text-dark fs-5">{{ automaton_stats.total_words }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -285,18 +285,238 @@
 {% block extra_js %}
 <script>
 function showDayDetails(date) {
-    // This would typically make an AJAX call to get detailed statistics for a specific day
-    // For now, we'll show a placeholder
+    // Mostrar loading
     document.getElementById('dayDetailsContent').innerHTML = `
         <div class="text-center py-4">
-            <i class="bi bi-calendar-date text-muted" style="font-size: 3rem;"></i>
-            <h5 class="mt-3">Estadísticas del ${date}</h5>
-            <p class="text-muted">Los detalles específicos del día se cargarían aquí.</p>
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando detalles del día...</p>
         </div>
     `;
     
     const modal = new bootstrap.Modal(document.getElementById('dayDetailsModal'));
     modal.show();
+    
+    // Hacer llamada AJAX
+    fetch(`/api/day-details/${date}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayDayDetails(data);
+            } else {
+                document.getElementById('dayDetailsContent').innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> ${data.error || 'Error al cargar los detalles'}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('dayDetailsContent').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-circle"></i> Error al cargar los detalles del día. Por favor, intenta de nuevo.
+                </div>
+            `;
+        });
+}
+
+function displayDayDetails(data) {
+    const stats = data.stats;
+    const typeNames = {
+        'insult': 'Insultos',
+        'threat': 'Amenazas',
+        'hate': 'Odio',
+        'harassment': 'Acoso',
+        'profanity': 'Profanidad'
+    };
+    
+    const typeIcons = {
+        'insult': 'bi-chat-dots',
+        'threat': 'bi-exclamation-triangle',
+        'hate': 'bi-heartbreak',
+        'harassment': 'bi-person-x',
+        'profanity': 'bi-exclamation-circle'
+    };
+    
+    const typeColors = {
+        'insult': 'warning',
+        'threat': 'danger',
+        'hate': 'danger',
+        'harassment': 'warning',
+        'profanity': 'warning'
+    };
+    
+    const levelNames = {
+        'safe': 'Seguro',
+        'low': 'Bajo',
+        'medium': 'Medio',
+        'extreme': 'Extremo'
+    };
+    
+    let html = `
+        <div class="text-center mb-4">
+            <i class="bi bi-calendar-date text-primary" style="font-size: 3rem;"></i>
+            <h5 class="mt-3">Estadísticas del ${data.date_display}</h5>
+        </div>
+        
+        <!-- Resumen General -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="bi bi-graph-up text-primary" style="font-size: 2rem;"></i>
+                        <h4 class="mt-2">${stats.total_analyses}</h4>
+                        <small class="text-muted">Total Análisis</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="bi bi-shield-check text-success" style="font-size: 2rem;"></i>
+                        <h4 class="mt-2">${stats.safe_analyses}</h4>
+                        <small class="text-muted">Seguros</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="bi bi-shield-exclamation text-danger" style="font-size: 2rem;"></i>
+                        <h4 class="mt-2">${stats.toxic_analyses}</h4>
+                        <small class="text-muted">Tóxicos</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="bi bi-percent text-info" style="font-size: 2rem;"></i>
+                        <h4 class="mt-2">${stats.toxicity_rate}%</h4>
+                        <small class="text-muted">Tasa Toxicidad</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Distribución por Nivel -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-pie-chart"></i> Distribución por Nivel de Toxicidad</h6>
+            </div>
+            <div class="card-body">
+    `;
+    
+    if (Object.keys(stats.level_stats).length > 0) {
+        for (const [level, count] of Object.entries(stats.level_stats)) {
+            const percentage = stats.total_analyses > 0 ? ((count / stats.total_analyses) * 100).toFixed(1) : 0;
+            html += `
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span><i class="bi bi-circle-fill toxicity-${level}"></i> ${levelNames[level] || level}</span>
+                        <span class="badge bg-secondary">${count} (${percentage}%)</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-${level === 'safe' ? 'success' : level === 'low' ? 'warning' : 'danger'}" 
+                             style="width: ${percentage}%"></div>
+                    </div>
+                </div>
+            `;
+        }
+    } else {
+        html += `<p class="text-muted text-center">No hay análisis con toxicidad detectada en este día.</p>`;
+    }
+    
+    html += `
+            </div>
+        </div>
+        
+        <!-- Distribución por Tipo -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-tags"></i> Distribución por Tipo de Toxicidad</h6>
+            </div>
+            <div class="card-body">
+    `;
+    
+    let hasTypes = false;
+    for (const [type, count] of Object.entries(stats.type_stats)) {
+        if (count > 0) {
+            hasTypes = true;
+            const percentage = stats.toxic_analyses > 0 ? ((count / stats.toxic_analyses) * 100).toFixed(1) : 0;
+            html += `
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span>
+                            <i class="bi ${typeIcons[type]} text-${typeColors[type]}"></i> 
+                            ${typeNames[type] || type}
+                        </span>
+                        <span class="badge bg-${typeColors[type]}">${count} (${percentage}%)</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-${typeColors[type]}" style="width: ${percentage}%"></div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    if (!hasTypes) {
+        html += `<p class="text-muted text-center">No se detectaron tipos específicos de toxicidad en este día.</p>`;
+    }
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    // Análisis recientes
+    if (data.recent_analyses && data.recent_analyses.length > 0) {
+        html += `
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-clock-history"></i> Análisis Recientes (${data.recent_analyses.length} de ${data.total_analyses_count})</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+        `;
+        
+        data.recent_analyses.forEach(analysis => {
+            const levelBadge = analysis.is_toxic 
+                ? `<span class="badge bg-${analysis.toxicity_level === 'low' ? 'warning' : analysis.toxicity_level === 'medium' ? 'warning' : 'danger'}">${analysis.toxicity_level_display}</span>`
+                : `<span class="badge bg-success">Seguro</span>`;
+            
+            html += `
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <p class="mb-1">${analysis.text_preview}</p>
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i> ${analysis.created_at} | 
+                                <i class="bi bi-${analysis.source_type === 'file' ? 'file-earmark' : 'text-paragraph'}"></i> ${analysis.source_type === 'file' ? 'Archivo' : 'Texto'}
+                            </small>
+                        </div>
+                        <div class="ms-3 d-flex flex-column align-items-end gap-2">
+                            ${levelBadge}
+                            <a href="/detail/${analysis.id}/" class="btn btn-sm btn-outline-primary" target="_blank">
+                                <i class="bi bi-eye"></i> Ver Detalles
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('dayDetailsContent').innerHTML = html;
 }
 </script>
 {% endblock %}

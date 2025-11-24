@@ -12,6 +12,7 @@ urlpatterns = [
     
     # Análisis de texto
     path('api/analyze/', views.api_analyze_text, name='api_analyze_text'),
+    path('api/day-details/<str:date_str>/', views.api_day_details, name='api_day_details'),
     
     # Historial (requiere autenticación)
     path('history/', views.analysis_history, name='history'),

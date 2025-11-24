@@ -376,13 +376,36 @@ class ToxicDetectorAutomaton:
         """Retorna estadísticas del autómata."""
         total_patterns = sum(len(patterns) for patterns in self.toxic_patterns.values())
         
+        # Contar palabras/frases por tipo
+        words_by_type = {}
+        total_words = 0
+        
+        for toxicity_type, patterns in self.toxic_patterns.items():
+            words_count = 0
+            for pattern in patterns:
+                # Extraer el contenido entre \b( y )\b
+                match = re.search(r'\\b\((.*?)\)\\b', pattern)
+                if match:
+                    contenido = match.group(1)
+                    # Contar las palabras/frases separadas por |
+                    palabras = [p.strip() for p in contenido.split('|') if p.strip()]
+                    words_count += len(palabras)
+                else:
+                    # Si no coincide el formato, contar las barras |
+                    words_count += pattern.count('|') + 1 if '|' in pattern else 1
+            
+            words_by_type[toxicity_type.value] = words_count
+            total_words += words_count
+        
         return {
             'total_states': 4,  # q0, q1, q2, q3
             'total_patterns': total_patterns,
+            'total_words': total_words,
             'patterns_by_type': {
                 toxicity_type.value: len(patterns) 
                 for toxicity_type, patterns in self.toxic_patterns.items()
-            }
+            },
+            'words_by_type': words_by_type
         }
 
 

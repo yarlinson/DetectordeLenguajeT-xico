@@ -312,6 +312,90 @@ def statistics_view(request):
     })
 
 
+@csrf_exempt
+@require_http_methods(["GET"])
+def api_day_details(request, date_str):
+    """
+    API endpoint para obtener los detalles de un día específico.
+    """
+    try:
+        from datetime import datetime
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+        
+        # Obtener estadísticas del día
+        try:
+            day_stats = AnalysisStatistics.objects.get(date=date_obj)
+        except AnalysisStatistics.DoesNotExist:
+            return JsonResponse({
+                'error': 'No hay estadísticas disponibles para esta fecha'
+            }, status=404)
+        
+        # Obtener análisis del día
+        day_analyses = TextAnalysis.objects.filter(
+            created_at__date=date_obj
+        ).order_by('-created_at')
+        
+        # Estadísticas por nivel de toxicidad
+        level_stats = {}
+        for level in ['safe', 'low', 'medium', 'extreme']:
+            count = day_analyses.filter(toxicity_level=level).count()
+            if count > 0:
+                level_stats[level] = count
+        
+        # Estadísticas por tipo de toxicidad
+        type_stats = {
+            'insult': day_stats.insults_count,
+            'threat': day_stats.threats_count,
+            'hate': day_stats.hate_count,
+            'harassment': day_stats.harassment_count,
+            'profanity': day_stats.profanity_count
+        }
+        
+        # Análisis recientes del día (últimos 10)
+        recent_analyses = []
+        for analysis in day_analyses[:10]:
+            recent_analyses.append({
+                'id': analysis.id,
+                'text_preview': analysis.text[:100] + '...' if len(analysis.text) > 100 else analysis.text,
+                'toxicity_level': analysis.toxicity_level,
+                'toxicity_level_display': analysis.get_toxicity_level_display(),
+                'is_toxic': analysis.is_toxic,
+                'toxicity_types': analysis.toxicity_types,
+                'created_at': analysis.created_at.strftime('%H:%M:%S'),
+                'source_type': analysis.source_type
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'date': date_str,
+            'date_display': date_obj.strftime('%d/%m/%Y'),
+            'stats': {
+                'total_analyses': day_stats.total_analyses,
+                'toxic_analyses': day_stats.toxic_analyses,
+                'safe_analyses': day_stats.safe_analyses,
+                'toxicity_rate': round(day_stats.toxicity_rate, 2),
+                'safety_rate': round(day_stats.safety_rate, 2),
+                'level_stats': level_stats,
+                'type_stats': type_stats,
+                'low_toxicity': day_stats.low_toxicity,
+                'medium_toxicity': day_stats.medium_toxicity,
+                'extreme_toxicity': day_stats.extreme_toxicity
+            },
+            'recent_analyses': recent_analyses,
+            'total_analyses_count': day_analyses.count()
+        })
+        
+    except ValueError:
+        return JsonResponse({
+            'error': 'Formato de fecha inválido. Use YYYY-MM-DD'
+        }, status=400)
+    except Exception as e:
+        logger.exception("Error al obtener detalles del día")
+        return JsonResponse({
+            'error': f'Error al obtener los detalles: {str(e)}'
+        }, status=500)
+
+
 def get_client_ip(request):
     """
     Obtiene la IP del cliente desde la request.
@@ -431,6 +515,30 @@ def about(request):
     Vista para mostrar información sobre el detector de toxicidad.
     """
     automaton_stats = toxic_detector.get_statistics()
+    
+    # Preparar datos combinados de patrones y palabras por tipo
+    type_info = {
+        'insult': {'name': 'Insultos', 'icon': 'bi-chat-dots', 'color': 'warning'},
+        'threat': {'name': 'Amenazas', 'icon': 'bi-exclamation-triangle', 'color': 'danger'},
+        'hate': {'name': 'Odio', 'icon': 'bi-heartbreak', 'color': 'danger'},
+        'harassment': {'name': 'Acoso', 'icon': 'bi-person-x', 'color': 'warning'},
+        'profanity': {'name': 'Profanidad', 'icon': 'bi-exclamation-circle', 'color': 'warning'}
+    }
+    
+    patterns_with_words = []
+    for toxicity_type, pattern_count in automaton_stats['patterns_by_type'].items():
+        word_count = automaton_stats['words_by_type'].get(toxicity_type, 0)
+        info = type_info.get(toxicity_type, {'name': toxicity_type.title(), 'icon': 'bi-tag-fill', 'color': 'secondary'})
+        patterns_with_words.append({
+            'type': toxicity_type,
+            'name': info['name'],
+            'icon': info['icon'],
+            'color': info['color'],
+            'pattern_count': pattern_count,
+            'word_count': word_count
+        })
+    
+    automaton_stats['patterns_with_words'] = patterns_with_words
     
     return render(request, 'detector/about.html', {
         'automaton_stats': automaton_stats

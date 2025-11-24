@@ -346,34 +346,36 @@ document.addEventListener('DOMContentLoaded', function() {
             // Agrupar palabras por tipo
             const wordsByType = {};
             if (data.detected_words && data.detected_words.length > 0) {
-            data.detected_words.forEach(word => {
-                if (!word || !word.text) {
-                    return;
-                }
-                if (!wordsByType[word.toxicity_type]) {
-                    wordsByType[word.toxicity_type] = new Set();
-                }
-                wordsByType[word.toxicity_type].add(word.text);
-            });
+                data.detected_words.forEach(word => {
+                    if (!word || !word.text || !word.toxicity_type) {
+                        return;
+                    }
+                    // Normalizar el tipo para evitar problemas de mayúsculas/minúsculas
+                    const normalizedType = word.toxicity_type.toLowerCase().trim();
+                    if (!wordsByType[normalizedType]) {
+                        wordsByType[normalizedType] = new Set();
+                    }
+                    wordsByType[normalizedType].add(word.text.trim());
+                });
             }
             
-                const wordsSection = document.createElement('div');
-                wordsSection.className = 'row mt-4';
-                
-                let wordsHTML = `
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-list-ul"></i>
-                                    Palabras Detectadas por Patrón
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                `;
-                
-                const typeInfo = {
+            const wordsSection = document.createElement('div');
+            wordsSection.className = 'row mt-4';
+            
+            let wordsHTML = `
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-ul"></i>
+                                Palabras Detectadas por Patrón
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+            `;
+            
+            const typeInfo = {
                 'insult': { 
                     icon: 'bi-chat-dots', 
                     name: 'Insultos', 
@@ -409,48 +411,53 @@ document.addEventListener('DOMContentLoaded', function() {
                     textColor: '#000',
                     badgeColor: '#ffc107'
                 }
-                };
-                
+            };
+            
             // Mostrar todos los tipos detectados, incluso si no tienen palabras específicas
             data.toxicity_types.forEach(type => {
-                const words = wordsByType[type] ? Array.from(wordsByType[type]) : [];
-                const info = typeInfo[type] || { 
+                // Normalizar el tipo para comparación
+                const normalizedType = type.toLowerCase().trim();
+                const words = wordsByType[normalizedType] ? Array.from(wordsByType[normalizedType]) : [];
+                const info = typeInfo[normalizedType] || { 
                     icon: 'bi-tag', 
                     name: type.charAt(0).toUpperCase() + type.slice(1), 
                     bgColor: '#6c757d', 
                     textColor: '#fff',
                     badgeColor: '#6c757d'
                 };
-                    
-                    wordsHTML += `
-                        <div class="col-md-6 mb-3">
+                
+                wordsHTML += `
+                    <div class="col-md-6 mb-3">
                         <div class="card h-100" style="border-left: 4px solid ${info.bgColor};">
                             <div class="card-header" style="background-color: ${info.bgColor}; color: ${info.textColor};">
-                                    <h6 class="mb-0">
+                                <h6 class="mb-0">
                                     <i class="bi ${info.icon}"></i> ${info.name}
-                                    </h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex flex-wrap gap-2">
-                    `;
-                    
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-2">
+                `;
+                
+                // Solo mostrar el mensaje si realmente no hay palabras
                 if (words.length > 0) {
                     words.forEach(word => {
-                        wordsHTML += `<span class="badge" style="background-color: ${info.badgeColor}; color: ${info.textColor};">${word}</span>`;
+                        if (word && word.trim()) {
+                            wordsHTML += `<span class="badge" style="background-color: ${info.badgeColor}; color: ${info.textColor};">${word}</span>`;
+                        }
                     });
                 } else {
                     wordsHTML += `<span class="text-muted">No se encontraron palabras específicas para este patrón</span>`;
                 }
-                    
-                    wordsHTML += `
-                                    </div>
-                                    <small class="text-muted d-block mt-2">
-                                        Total: <strong>${words.length}</strong> palabra(s)
-                                    </small>
+                
+                wordsHTML += `
                                 </div>
+                                <small class="text-muted d-block mt-2">
+                                    Total: <strong>${words.length}</strong> palabra(s)
+                                </small>
                             </div>
                         </div>
-                    `;
+                    </div>
+                `;
             });
                 
                 wordsHTML += `

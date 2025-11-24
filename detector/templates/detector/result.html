@@ -145,251 +145,249 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
+                            {% regroup analysis.detected_words by toxicity_type as words_by_type %}
                             {% for toxicity_type in analysis.toxicity_types %}
                                 {% if toxicity_type == 'insult' %}
                                     {% with bg_color='#ffc107' text_color='#000' %}
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
-                                            <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
-                                                <h6 class="mb-0">
-                                                    <i class="bi bi-chat-dots"></i> Insultos
-                                                </h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="d-flex flex-wrap gap-2">
-                                                    {% if analysis.detected_words %}
-                                                        {% with word_count=0 %}
-                                                        {% for word_data in analysis.detected_words %}
-                                                            {% if word_data.toxicity_type == toxicity_type and word_data.text %}
-                                                                <span class="badge" style="background-color: {{ bg_color }}; color: {{ text_color }};">
-                                                                    {{ word_data.text }}
-                                                                </span>
-                                                                {% with word_count=word_count|add:1 %}{% endwith %}
+                                    {% for type_group in words_by_type %}
+                                        {% if type_group.grouper == toxicity_type %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
+                                                    <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+                                                        <h6 class="mb-0">
+                                                            <i class="bi bi-chat-dots"></i> Insultos
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            {% if type_group.list %}
+                                                                {% for word_data in type_group.list %}
+                                                                    {% if word_data.text %}
+                                                                        <span class="badge" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+                                                                            {{ word_data.text }}
+                                                                        </span>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            {% else %}
+                                                                <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
                                                             {% endif %}
-                                                        {% endfor %}
-                                                        {% if word_count == 0 %}
-                                                            <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
-                                                        {% endif %}
-                                                        {% endwith %}
-                                                    {% else %}
-                                                        <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
-                                                    {% endif %}
+                                                        </div>
+                                                        <small class="text-muted d-block mt-2">
+                                                            Total: <strong>{{ type_group.list|length }}</strong> palabra(s)
+                                                        </small>
+                                                    </div>
                                                 </div>
-                                                <small class="text-muted d-block mt-2">
-                                                    Total: <strong>
-                                                        {% if analysis.detected_words %}
-                                                            {% regroup analysis.detected_words by toxicity_type as grouped_words %}
-                                                            {% for group in grouped_words %}
-                                                                {% if group.grouper == toxicity_type %}
-                                                                    {{ group.list|length }}
-                                                                {% endif %}
-                                                            {% empty %}
-                                                                0
-                                                            {% endfor %}
-                                                        {% else %}
-                                                            0
-                                                        {% endif %}
-                                                    </strong> palabra(s)
-                                                </small>
                                             </div>
-                                        </div>
-                                    </div>
+                                        {% endif %}
+                                    {% endfor %}
                                     {% endwith %}
                                 {% elif toxicity_type == 'threat' %}
                                     {% with bg_color='#dc3545' text_color='#fff' %}
-                                <div class="col-md-6 mb-3">
-                                        <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
-                                            <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
-                                            <h6 class="mb-0">
-                                                    <i class="bi bi-exclamation-triangle"></i> Amenazas
-                                                </h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="d-flex flex-wrap gap-2">
-                                                    {% if analysis.detected_words %}
-                                                        {% with word_count=0 %}
-                                                        {% for word_data in analysis.detected_words %}
-                                                            {% if word_data.toxicity_type == toxicity_type and word_data.text %}
-                                                                <span class="badge" style="background-color: {{ bg_color }}; color: {{ text_color }};">
-                                                                    {{ word_data.text }}
-                                                                </span>
-                                                                {% with word_count=word_count|add:1 %}{% endwith %}
+                                    {% for type_group in words_by_type %}
+                                        {% if type_group.grouper == toxicity_type %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
+                                                    <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+                                                        <h6 class="mb-0">
+                                                            <i class="bi bi-exclamation-triangle"></i> Amenazas
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            {% if type_group.list %}
+                                                                {% for word_data in type_group.list %}
+                                                                    {% if word_data.text %}
+                                                                        <span class="badge" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+                                                                            {{ word_data.text }}
+                                                                        </span>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            {% else %}
+                                                                <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
                                                             {% endif %}
-                                                        {% endfor %}
-                                                        {% if word_count == 0 %}
-                                                            <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
-                                                        {% endif %}
-                                                        {% endwith %}
-                                                    {% else %}
-                                                        <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
-                                                    {% endif %}
+                                                        </div>
+                                                        <small class="text-muted d-block mt-2">
+                                                            Total: <strong>{{ type_group.list|length }}</strong> palabra(s)
+                                                        </small>
+                                                    </div>
                                                 </div>
-                                                <small class="text-muted d-block mt-2">
-                                                    Total: <strong>
-                                                        {% if analysis.detected_words %}
-                                                            {% regroup analysis.detected_words by toxicity_type as grouped_words %}
-                                                            {% for group in grouped_words %}
-                                                                {% if group.grouper == toxicity_type %}
-                                                                    {{ group.list|length }}
-                                                                {% endif %}
-                                                            {% empty %}
-                                                                0
-                                                            {% endfor %}
-                                                {% else %}
-                                                            0
-                                                {% endif %}
-                                                    </strong> palabra(s)
-                                                </small>
+                                            </div>
+                                        {% endif %}
+                                    {% empty %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
+                                                <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+                                                    <h6 class="mb-0">
+                                                        <i class="bi bi-exclamation-triangle"></i> Amenazas
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
+                                                    </div>
+                                                    <small class="text-muted d-block mt-2">
+                                                        Total: <strong>0</strong> palabra(s)
+                                                    </small>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    {% endfor %}
                                     {% endwith %}
                                 {% elif toxicity_type == 'hate' %}
                                     {% with bg_color='#dc3545' text_color='#fff' %}
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
-                                            <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
-                                                <h6 class="mb-0">
-                                                    <i class="bi bi-heartbreak"></i> Odio
-                                            </h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="d-flex flex-wrap gap-2">
-                                                    {% if analysis.detected_words %}
-                                                        {% with word_count=0 %}
-                                                        {% for word_data in analysis.detected_words %}
-                                                            {% if word_data.toxicity_type == toxicity_type and word_data.text %}
-                                                                <span class="badge" style="background-color: {{ bg_color }}; color: {{ text_color }};">
-                                                                    {{ word_data.text }}
-                                                                </span>
-                                                                {% with word_count=word_count|add:1 %}{% endwith %}
+                                    {% for type_group in words_by_type %}
+                                        {% if type_group.grouper == toxicity_type %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
+                                                    <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+                                                        <h6 class="mb-0">
+                                                            <i class="bi bi-heartbreak"></i> Odio
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            {% if type_group.list %}
+                                                                {% for word_data in type_group.list %}
+                                                                    {% if word_data.text %}
+                                                                        <span class="badge" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+                                                                            {{ word_data.text }}
+                                                                        </span>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            {% else %}
+                                                                <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
                                                             {% endif %}
-                                                        {% endfor %}
-                                                        {% if word_count == 0 %}
-                                                            <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
-                                                        {% endif %}
-                                                        {% endwith %}
-                                                    {% else %}
-                                                        <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
-                                                    {% endif %}
+                                                        </div>
+                                                        <small class="text-muted d-block mt-2">
+                                                            Total: <strong>{{ type_group.list|length }}</strong> palabra(s)
+                                                        </small>
+                                                    </div>
                                                 </div>
-                                                <small class="text-muted d-block mt-2">
-                                                    Total: <strong>
-                                                        {% if analysis.detected_words %}
-                                                            {% regroup analysis.detected_words by toxicity_type as grouped_words %}
-                                                            {% for group in grouped_words %}
-                                                                {% if group.grouper == toxicity_type %}
-                                                                    {{ group.list|length }}
-                                                                {% endif %}
-                                                            {% empty %}
-                                                                0
-                                                            {% endfor %}
-                                                        {% else %}
-                                                            0
-                                                        {% endif %}
-                                                    </strong> palabra(s)
-                                                </small>
+                                            </div>
+                                        {% endif %}
+                                    {% empty %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
+                                                <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+                                                    <h6 class="mb-0">
+                                                        <i class="bi bi-heartbreak"></i> Odio
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
+                                                    </div>
+                                                    <small class="text-muted d-block mt-2">
+                                                        Total: <strong>0</strong> palabra(s)
+                                                    </small>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    {% endfor %}
                                     {% endwith %}
                                 {% elif toxicity_type == 'harassment' %}
                                     {% with bg_color='#fd7e14' text_color='#000' %}
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
-                                            <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
-                                                <h6 class="mb-0">
-                                                    <i class="bi bi-person-x"></i> Acoso
-                                                </h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="d-flex flex-wrap gap-2">
-                                                    {% if analysis.detected_words %}
-                                                        {% with word_count=0 %}
-                                                        {% for word_data in analysis.detected_words %}
-                                                            {% if word_data.toxicity_type == toxicity_type and word_data.text %}
-                                                                <span class="badge" style="background-color: {{ bg_color }}; color: {{ text_color }};">
-                                                            {{ word_data.text }}
-                                                        </span>
-                                                                {% with word_count=word_count|add:1 %}{% endwith %}
+                                    {% for type_group in words_by_type %}
+                                        {% if type_group.grouper == toxicity_type %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
+                                                    <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+                                                        <h6 class="mb-0">
+                                                            <i class="bi bi-person-x"></i> Acoso
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            {% if type_group.list %}
+                                                                {% for word_data in type_group.list %}
+                                                                    {% if word_data.text %}
+                                                                        <span class="badge" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+                                                                            {{ word_data.text }}
+                                                                        </span>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            {% else %}
+                                                                <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
                                                             {% endif %}
-                                                        {% endfor %}
-                                                        {% if word_count == 0 %}
-                                                            <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
-                                                        {% endif %}
-                                                        {% endwith %}
-                                                    {% else %}
-                                                        <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
-                                                    {% endif %}
+                                                        </div>
+                                                        <small class="text-muted d-block mt-2">
+                                                            Total: <strong>{{ type_group.list|length }}</strong> palabra(s)
+                                                        </small>
+                                                    </div>
                                                 </div>
-                                                <small class="text-muted d-block mt-2">
-                                                    Total: <strong>
-                                                        {% if analysis.detected_words %}
-                                                            {% regroup analysis.detected_words by toxicity_type as grouped_words %}
-                                                            {% for group in grouped_words %}
-                                                                {% if group.grouper == toxicity_type %}
-                                                                    {{ group.list|length }}
-                                                                {% endif %}
-                                                            {% empty %}
-                                                                0
-                                                {% endfor %}
-                                                        {% else %}
-                                                            0
-                                                        {% endif %}
-                                                    </strong> palabra(s)
-                                                </small>
+                                            </div>
+                                        {% endif %}
+                                    {% empty %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
+                                                <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+                                                    <h6 class="mb-0">
+                                                        <i class="bi bi-person-x"></i> Acoso
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
+                                                    </div>
+                                                    <small class="text-muted d-block mt-2">
+                                                        Total: <strong>0</strong> palabra(s)
+                                                    </small>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    {% endfor %}
                                     {% endwith %}
                                 {% elif toxicity_type == 'profanity' %}
                                     {% with bg_color='#ffc107' text_color='#000' %}
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
-                                            <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
-                                                <h6 class="mb-0">
-                                                    <i class="bi bi-exclamation-circle"></i> Profanidad
-                                                </h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="d-flex flex-wrap gap-2">
-                                                    {% if analysis.detected_words %}
-                                                        {% with word_count=0 %}
-                                                        {% for word_data in analysis.detected_words %}
-                                                            {% if word_data.toxicity_type == toxicity_type and word_data.text %}
-                                                                <span class="badge" style="background-color: {{ bg_color }}; color: {{ text_color }};">
-                                                                    {{ word_data.text }}
-                                                                </span>
-                                                                {% with word_count=word_count|add:1 %}{% endwith %}
+                                    {% for type_group in words_by_type %}
+                                        {% if type_group.grouper == toxicity_type %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
+                                                    <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+                                                        <h6 class="mb-0">
+                                                            <i class="bi bi-exclamation-circle"></i> Profanidad
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            {% if type_group.list %}
+                                                                {% for word_data in type_group.list %}
+                                                                    {% if word_data.text %}
+                                                                        <span class="badge" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+                                                                            {{ word_data.text }}
+                                                                        </span>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            {% else %}
+                                                                <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
                                                             {% endif %}
-                                                        {% endfor %}
-                                                        {% if word_count == 0 %}
-                                                            <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
-                                                        {% endif %}
-                                                        {% endwith %}
-                                                    {% else %}
-                                                        <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
-                                                    {% endif %}
+                                                        </div>
+                                                        <small class="text-muted d-block mt-2">
+                                                            Total: <strong>{{ type_group.list|length }}</strong> palabra(s)
+                                                        </small>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <small class="text-muted d-block mt-2">
-                                                    Total: <strong>
-                                                        {% if analysis.detected_words %}
-                                                            {% regroup analysis.detected_words by toxicity_type as grouped_words %}
-                                                            {% for group in grouped_words %}
-                                                                {% if group.grouper == toxicity_type %}
-                                                                    {{ group.list|length }}
-                                                                {% endif %}
-                                                            {% empty %}
-                                                                0
-                                                            {% endfor %}
-                                                        {% else %}
-                                                            0
-                                                        {% endif %}
-                                                    </strong> palabra(s)
-                                            </small>
+                                        {% endif %}
+                                    {% empty %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
+                                                <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
+                                                    <h6 class="mb-0">
+                                                        <i class="bi bi-exclamation-circle"></i> Profanidad
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
+                                                    </div>
+                                                    <small class="text-muted d-block mt-2">
+                                                        Total: <strong>0</strong> palabra(s)
+                                                    </small>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
+                                    {% endfor %}
                                     {% endwith %}
                                 {% else %}
                                     {% with bg_color='#6c757d' text_color='#fff' %}

@@ -159,7 +159,7 @@ class TextAnalysis(models.Model):
     @property
     def confidence_percentage(self):
         return round(self.confidence * 100, 1)
-    
+
     def get_words_by_type(self, toxicity_type: str):
         """Retorna las palabras detectadas para un tipo específico de toxicidad."""
         if not self.detected_words:

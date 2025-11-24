@@ -197,10 +197,10 @@
                                     {% endwith %}
                                 {% elif toxicity_type == 'threat' %}
                                     {% with bg_color='#dc3545' text_color='#fff' %}
-                                    <div class="col-md-6 mb-3">
+                                <div class="col-md-6 mb-3">
                                         <div class="card h-100" style="border-left: 4px solid {{ bg_color }};">
                                             <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
-                                                <h6 class="mb-0">
+                                            <h6 class="mb-0">
                                                     <i class="bi bi-exclamation-triangle"></i> Amenazas
                                                 </h6>
                                             </div>
@@ -235,9 +235,9 @@
                                                             {% empty %}
                                                                 0
                                                             {% endfor %}
-                                                        {% else %}
+                                                {% else %}
                                                             0
-                                                        {% endif %}
+                                                {% endif %}
                                                     </strong> palabra(s)
                                                 </small>
                                             </div>
@@ -251,10 +251,10 @@
                                             <div class="card-header" style="background-color: {{ bg_color }}; color: {{ text_color }};">
                                                 <h6 class="mb-0">
                                                     <i class="bi bi-heartbreak"></i> Odio
-                                                </h6>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="d-flex flex-wrap gap-2">
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="d-flex flex-wrap gap-2">
                                                     {% if analysis.detected_words %}
                                                         {% with word_count=0 %}
                                                         {% for word_data in analysis.detected_words %}
@@ -309,8 +309,8 @@
                                                         {% for word_data in analysis.detected_words %}
                                                             {% if word_data.toxicity_type == toxicity_type and word_data.text %}
                                                                 <span class="badge" style="background-color: {{ bg_color }}; color: {{ text_color }};">
-                                                                    {{ word_data.text }}
-                                                                </span>
+                                                            {{ word_data.text }}
+                                                        </span>
                                                                 {% with word_count=word_count|add:1 %}{% endwith %}
                                                             {% endif %}
                                                         {% endfor %}
@@ -332,7 +332,7 @@
                                                                 {% endif %}
                                                             {% empty %}
                                                                 0
-                                                            {% endfor %}
+                                                {% endfor %}
                                                         {% else %}
                                                             0
                                                         {% endif %}
@@ -370,8 +370,8 @@
                                                     {% else %}
                                                         <span class="text-muted">No se encontraron palabras específicas para este patrón</span>
                                                     {% endif %}
-                                                </div>
-                                                <small class="text-muted d-block mt-2">
+                                            </div>
+                                            <small class="text-muted d-block mt-2">
                                                     Total: <strong>
                                                         {% if analysis.detected_words %}
                                                             {% regroup analysis.detected_words by toxicity_type as grouped_words %}
@@ -386,10 +386,10 @@
                                                             0
                                                         {% endif %}
                                                     </strong> palabra(s)
-                                                </small>
-                                            </div>
+                                            </small>
                                         </div>
                                     </div>
+                                </div>
                                     {% endwith %}
                                 {% else %}
                                     {% with bg_color='#6c757d' text_color='#fff' %}

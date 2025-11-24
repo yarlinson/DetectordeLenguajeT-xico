@@ -4,14 +4,16 @@ Un sistema inteligente de análisis de texto desarrollado en Django que utiliza 
 
 ## 🚀 Características
 
-- **Detección en tiempo real** de lenguaje tóxico usando AFD
-- **Múltiples tipos de toxicidad**: insultos, amenazas, odio, acoso, profanidad
-- **Niveles de toxicidad**: seguro, bajo, medio, alto, extremo
-- **Interfaz web moderna** con Bootstrap 5
+- **Detección en tiempo real** de lenguaje tóxico usando AFD (Autómata Finito Determinista)
+- **5 tipos de toxicidad**: insultos, profanidad, acoso, amenazas, odio
+- **4 niveles de toxicidad**: SAFE (seguro), LOW (bajo), MEDIUM (medio), EXTREME (extremo)
+- **Interfaz web moderna** con Bootstrap 5 y diseño responsivo
 - **Panel de administración** completo para gestionar patrones
 - **Estadísticas detalladas** y análisis histórico
 - **API REST** para integración con otros sistemas
 - **Patrones personalizables** desde el panel de admin
+- **Dockerización completa** para fácil despliegue
+- **Explicación detallada del AFD** con diagramas y ejemplos
 
 ## ⚡ Inicio Rápido con Docker
 
@@ -33,10 +35,12 @@ docker-compose exec web python manage.py createsuperuser
 ## 🛠️ Tecnologías Utilizadas
 
 - **Backend**: Django 5.2.7
-- **Frontend**: Bootstrap 5, HTML5, CSS3, JavaScript
+- **Frontend**: Bootstrap 5, HTML5, CSS3, JavaScript (AJAX)
 - **Base de datos**: SQLite (desarrollo)
-- **Autómatas**: AFD (Autómata Finito Determinista)
+- **Autómatas**: AFD (Autómata Finito Determinista) con 4 estados
 - **Patrones**: Expresiones regulares (regex)
+- **Contenedores**: Docker y Docker Compose
+- **Procesamiento de archivos**: PyPDF2, BeautifulSoup (PDF, TXT, HTML)
 
 ## 📋 Requisitos
 
@@ -242,6 +246,14 @@ Para probar el sistema con diferentes casos, tienes dos opciones:
 
 2. **[ejemplos_rapidos.txt](ejemplos_rapidos.txt)** - Archivo simple con ejemplos listos para copiar y pegar rápidamente
 
+### Páginas Disponibles
+
+- **Página Principal** (`/`): Interfaz para analizar texto en tiempo real
+- **Acerca de** (`/about/`): Información general sobre el sistema y su funcionamiento
+- **Explicación del AFD** (`/automaton/`): Explicación detallada del autómata finito determinista con diagramas y ejemplos
+- **Estadísticas** (`/statistics/`): Estadísticas generales del sistema
+- **Historial** (`/history/`): Historial de análisis realizados (requiere autenticación)
+
 ### Panel de Administración
 
 1. Accede a `/admin/`
@@ -263,15 +275,33 @@ curl -X POST http://127.0.0.1:8000/api/analyze/ \
 
 ### Autómata Finito Determinista (AFD)
 
-El sistema utiliza un AFD con los siguientes estados:
+El sistema utiliza un AFD con 4 estados para clasificar el nivel de toxicidad:
 
-- **q0**: Estado inicial (texto seguro)
-- **q1**: Detectando insultos
-- **q2**: Detectando amenazas  
-- **q3**: Detectando odio
-- **q4**: Detectando acoso
-- **q5**: Detectando profanidad
-- **q6**: Estado final tóxico
+- **q₀ (SAFE)**: Estado inicial - Texto seguro sin toxicidad detectada
+- **q₁ (LOW)**: Toxicidad baja - Detecta insultos o profanidad
+- **q₂ (MEDIUM)**: Toxicidad media - Detecta acoso
+- **q₃ (EXTREME)**: Toxicidad extrema - Detecta amenazas u odio (estado absorbente)
+
+#### Reglas de Transición
+
+**Desde q₀ (SAFE):**
+- INSULT o PROFANITY → q₁ (LOW)
+- HARASSMENT → q₂ (MEDIUM)
+- THREAT o HATE → q₃ (EXTREME)
+
+**Desde q₁ (LOW):**
+- INSULT o PROFANITY → q₁ (permanece en LOW)
+- HARASSMENT → q₂ (sube a MEDIUM)
+- THREAT o HATE → q₃ (sube a EXTREME)
+
+**Desde q₂ (MEDIUM):**
+- INSULT, PROFANITY o HARASSMENT → q₂ (permanece en MEDIUM)
+- THREAT o HATE → q₃ (sube a EXTREME)
+
+**Desde q₃ (EXTREME):**
+- Cualquier patrón → q₃ (estado absorbente, permanece en EXTREME)
+
+> **Nota:** El estado q₃ es absorbente, lo que significa que una vez alcanzado, el autómata permanece ahí sin importar qué más detecte. Todos los estados son estados finales.
 
 ### Modelos de Datos
 
@@ -279,13 +309,52 @@ El sistema utiliza un AFD con los siguientes estados:
 - **ToxicPattern**: Patrones personalizables de toxicidad
 - **AnalysisStatistics**: Estadísticas diarias del sistema
 
+### Niveles de Toxicidad
+
+El sistema clasifica el texto en 4 niveles de toxicidad:
+
+- **SAFE (Seguro)** 🟢 - Verde (#28a745)
+  - No se detectó ningún patrón tóxico
+  - Estado inicial del AFD (q₀)
+
+- **LOW (Bajo)** 🟡 - Amarillo/Naranja claro (#ffc107)
+  - Detecta insultos o profanidad
+  - Estado q₁ del AFD
+
+- **MEDIUM (Medio)** 🟠 - Naranja (#fd7e14)
+  - Detecta acoso
+  - Estado q₂ del AFD
+
+- **EXTREME (Extremo)** 🔴 - Rojo (#dc3545)
+  - Detecta amenazas u odio
+  - Estado q₃ del AFD (estado absorbente)
+
 ### Tipos de Toxicidad Detectados
 
-1. **Insultos**: Palabras ofensivas dirigidas a personas
-2. **Amenazas**: Expresiones que implican daño físico o psicológico
-3. **Odio**: Contenido que promueve discriminación o violencia
-4. **Acoso**: Comportamientos intimidatorios o persistentes
-5. **Profanidad**: Lenguaje vulgar o inapropiado
+1. **Insultos (INSULT)** - Nivel: LOW 🟡
+   - Palabras ofensivas dirigidas a personas
+   - Descalificaciones, epítetos ofensivos, expresiones de desprecio
+   - Color: Amarillo (#ffc107)
+
+2. **Profanidad (PROFANITY)** - Nivel: LOW 🟡
+   - Lenguaje vulgar o inapropiado
+   - Palabrotas, maldiciones, blasfemias
+   - Color: Amarillo (#ffc107)
+
+3. **Acoso (HARASSMENT)** - Nivel: MEDIUM 🟠
+   - Comportamientos intimidatorios o persistentes
+   - Expresiones de persecución, amenazas de acoso continuo
+   - Color: Naranja (#fd7e14)
+
+4. **Amenazas (THREAT)** - Nivel: EXTREME 🔴
+   - Expresiones que implican daño físico o psicológico
+   - Amenazas de muerte, violencia física, venganza
+   - Color: Rojo (#dc3545)
+
+5. **Odio (HATE)** - Nivel: EXTREME 🔴
+   - Contenido que promueve discriminación o violencia
+   - Expresiones de odio general, términos discriminatorios, deshumanización
+   - Color: Rojo (#dc3545)
 
 ## 📊 Estadísticas
 
